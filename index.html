@@ -38,6 +38,9 @@
         .modal-content {
             background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
         }
+        .reward-modal-content {
+             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        }
         .btn {
             transition: all 0.2s ease;
         }
@@ -63,6 +66,7 @@
             <button id="page1-btn" class="btn bg-blue-600 text-white font-bold py-2 px-6 rounded-full nav-btn-active">1. แปลงหน่วยอุณหภูมิ</button>
             <button id="page2-btn" class="btn bg-gray-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-full">2. การคำนวณความร้อน</button>
             <button id="page3-btn" class="btn bg-gray-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">3. อ่านแถบสีตัวต้านทาน</button>
+            <button id="page4-btn" class="btn bg-gray-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-full">4. คำถามวัดดวง</button>
         </div>
 
         <!-- Game Page 1 -->
@@ -100,6 +104,18 @@
                 </button>
             </div>
         </div>
+
+        <!-- Game Page 4 (initially hidden) -->
+        <div id="game-container-4" class="hidden">
+            <h1 class="text-4xl md:text-5xl font-bold text-center mb-6 text-shadow">เกมคำถามวัดดวง (+สุ่มรางวัล)</h1>
+            <div id="scoreboard-4" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
+            <div id="game-board-4" class="grid grid-cols-5 gap-4"></div>
+            <div class="mt-8 text-center">
+                <button data-reset-type="page4" class="reset-btn btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-lg">
+                    ล้างกระดานหน้านี้
+                </button>
+            </div>
+        </div>
         
         <hr class="my-8 border-t-2 border-white/30">
         
@@ -127,6 +143,17 @@
         </div>
     </div>
 
+    <!-- Reward Modal -->
+    <div id="reward-modal" class="modal fixed inset-0 w-full h-full flex items-center justify-center hidden">
+        <div class="reward-modal-content w-11/12 md:w-2/3 max-w-4xl p-8 rounded-2xl shadow-2xl text-gray-800 flex flex-col items-center text-center">
+            <h2 class="text-4xl font-bold mb-4 text-orange-800">🎉 ตอบถูก! รับรางวัลพิเศษ! 🎉</h2>
+            <p class="text-2xl md:text-3xl font-bold mb-8 min-h-[100px] text-orange-900" id="reward-text"></p>
+            <p class="text-lg font-semibold mb-4">มอบรางวัลให้กับทีม:</p>
+            <div id="reward-buttons" class="flex flex-wrap justify-center gap-4"></div>
+            <button id="close-reward-modal-btn" class="absolute top-4 right-4 text-gray-700 hover:text-gray-900 text-3xl font-bold">&times;</button>
+        </div>
+    </div>
+
     <!-- Reset Confirmation Modal -->
     <div id="reset-modal" class="modal fixed inset-0 w-full h-full flex items-center justify-center hidden">
         <div class="modal-content w-11/12 md:w-1/3 max-w-lg p-8 rounded-2xl shadow-2xl text-gray-800 flex flex-col items-center text-center">
@@ -141,88 +168,71 @@
     <script>
         const teams = ["ทีมที่ 1", "ทีมที่ 2", "ทีมที่ 3", "ทีมที่ 4"];
 
-        // --- GAME DATA 1: Temperature Conversion ---
-        const gameData1 = {
-            categories: ["เซลเซียส", "ฟาเรนไฮต์", "โรเมอร์", "เคลวิน"],
-            questions: [
-                [{ question: "แปลง 25°C เป็น ฟาเรนไฮต์", answer: "77°F", points: 100 }, { question: "แปลง 50°C เป็น เคลวิน", answer: "323.15 K", points: 200 }, { question: "แปลง 80°C เป็น โรเมอร์", answer: "64°Ré", points: 300 }, { question: "แปลง -40°C เป็น ฟาเรนไฮต์", answer: "-40°F", points: 400 }],
-                [{ question: "แปลง 59°F เป็น เซลเซียส", answer: "15°C", points: 100 }, { question: "แปลง 95°F เป็น โรเมอร์", answer: "28°Ré", points: 200 }, { question: "แปลง 41°F เป็น เคลวิน", answer: "278.15 K", points: 300 }, { question: "แปลง -4°F เป็น เซลเซียส", answer: "-20°C", points: 400 }],
-                [{ question: "แปลง 20°Ré เป็น เซลเซียส", answer: "25°C", points: 100 }, { question: "แปลง 40°Ré เป็น ฟาเรนไฮต์", answer: "122°F", points: 200 }, { question: "แปลง 80°Ré (จุดเดือด) เป็น เคลวิน", answer: "373.15 K", points: 300 }, { question: "แปลง 0°Ré (จุดเยือกแข็ง) เป็น ฟาเรนไฮต์", answer: "32°F", points: 400 }],
-                [{ question: "แปลง 300 K เป็น เซลเซียส", answer: "26.85°C", points: 100 }, { question: "แปลง 273.15 K เป็น ฟาเรนไฮต์", answer: "32°F", points: 200 }, { question: "แปลง 310 K (อุณหภูมิร่างกาย) เป็น โรเมอร์", answer: "29.6°Ré", points: 300 }, { question: "แปลง 0 K (ศูนย์สัมบูรณ์) เป็น เซลเซียส", answer: "-273.15°C", points: 400 }]
-            ]
-        };
-
-        // --- GAME DATA 2: Heat Calculation ---
-        const gameData2 = {
-            categories: ["Q=mcΔT", "Q=mL (หลอมเหลว)", "Q=mL (กลายเป็นไอ)"],
-            questions: [
-                [{ question: "น้ำ 2 kg อุณหภูมิเพิ่ม 10°C ต้องใช้ความร้อนเท่าใด? (c น้ำ = 4200 J/kg°C)", answer: "Q = 84,000 J", points: 100 }, { question: "ให้ความร้อน 16,800 J กับน้ำ 1 kg อุณหภูมิจะเพิ่มขึ้นเท่าใด?", answer: "ΔT = 4°C", points: 200 }, { question: "น้ำ 500 กรัม 20°C ทำให้ร้อนเป็น 100°C ใช้ความร้อนเท่าใด? (c น้ำ = 4200 J/kg°C)", answer: "Q = 168,000 J", points: 300 }, { question: "น้ำแข็ง 1 kg -10°C ทำให้ร้อนเป็น 0°C ใช้ความร้อนเท่าใด? (c น้ำแข็ง = 2100 J/kg°C)", answer: "Q = 21,000 J", points: 400 }],
-                [{ question: "หลอมเหลวน้ำแข็ง 0.5 kg ที่ 0°C ใช้ความร้อนเท่าใด? (L = 334,000 J/kg)", answer: "Q = 167,000 J", points: 100 }, { question: "น้ำแข็ง 2 kg หลอมเหลวหมดที่ 0°C ใช้ความร้อนเท่าใด?", answer: "Q = 668,000 J", points: 200 }, { question: "ให้ความร้อน 334,000 J กับน้ำแข็งที่ 0°C จะละลายได้กี่ kg?", answer: "1 kg", points: 300 }, { question: "ความร้อนที่ใช้หลอมน้ำแข็ง 1 kg ทำให้น้ำ 1 kg ร้อนขึ้นกี่องศา?", answer: "≈ 79.5°C", points: 400 }],
-                [{ question: "ทำให้น้ำ 1 kg ที่ 100°C กลายเป็นไอทั้งหมด ใช้ความร้อนเท่าใด? (L = 2,260,000 J/kg)", answer: "Q = 2,260,000 J", points: 100 }, { question: "ทำให้น้ำ 0.2 kg ที่ 100°C กลายเป็นไอหมด ใช้ความร้อนเท่าใด?", answer: "Q = 452,000 J", points: 200 }, { question: "ไอน้ำ 0.1 kg ที่ 100°C ควบแน่นเป็นน้ำหมด จะคายความร้อนเท่าใด?", answer: "Q = 226,000 J", points: 300 }, { question: "ความร้อนจากการกลายเป็นไอของน้ำ 1 kg ทำให้น้ำ 100 kg ร้อนขึ้นกี่องศา?", answer: "≈ 5.38°C", points: 400 }]
-            ]
-        };
+        // --- GAME DATA 1, 2, 3 (Same as before) ---
+        const gameData1 = { categories: ["เซลเซียส", "ฟาเรนไฮต์", "โรเมอร์", "เคลวิน"], questions: [[{ question: "แปลง 25°C เป็น ฟาเรนไฮต์", answer: "77°F", points: 100 }, { question: "แปลง 50°C เป็น เคลวิน", answer: "323.15 K", points: 200 }, { question: "แปลง 80°C เป็น โรเมอร์", answer: "64°Ré", points: 300 }, { question: "แปลง -40°C เป็น ฟาเรนไฮต์", answer: "-40°F", points: 400 }], [{ question: "แปลง 59°F เป็น เซลเซียส", answer: "15°C", points: 100 }, { question: "แปลง 95°F เป็น โรเมอร์", answer: "28°Ré", points: 200 }, { question: "แปลง 41°F เป็น เคลวิน", answer: "278.15 K", points: 300 }, { question: "แปลง -4°F เป็น เซลเซียส", answer: "-20°C", points: 400 }], [{ question: "แปลง 20°Ré เป็น เซลเซียส", answer: "25°C", points: 100 }, { question: "แปลง 40°Ré เป็น ฟาเรนไฮต์", answer: "122°F", points: 200 }, { question: "แปลง 80°Ré (จุดเดือด) เป็น เคลวิน", answer: "373.15 K", points: 300 }, { question: "แปลง 0°Ré (จุดเยือกแข็ง) เป็น ฟาเรนไฮต์", answer: "32°F", points: 400 }], [{ question: "แปลง 300 K เป็น เซลเซียส", answer: "26.85°C", points: 100 }, { question: "แปลง 273.15 K เป็น ฟาเรนไฮต์", answer: "32°F", points: 200 }, { question: "แปลง 310 K (อุณหภูมิร่างกาย) เป็น โรเมอร์", answer: "29.6°Ré", points: 300 }, { question: "แปลง 0 K (ศูนย์สัมบูรณ์) เป็น เซลเซียส", answer: "-273.15°C", points: 400 }]] };
+        const gameData2 = { categories: ["Q=mcΔT", "Q=mL (หลอมเหลว)", "Q=mL (กลายเป็นไอ)"], questions: [[{ question: "น้ำ 2 kg อุณหภูมิเพิ่ม 10°C ต้องใช้ความร้อนเท่าใด? (c น้ำ = 4200 J/kg°C)", answer: "Q = 84,000 J", points: 100 }, { question: "ให้ความร้อน 16,800 J กับน้ำ 1 kg อุณหภูมิจะเพิ่มขึ้นเท่าใด?", answer: "ΔT = 4°C", points: 200 }, { question: "น้ำ 500 กรัม 20°C ทำให้ร้อนเป็น 100°C ใช้ความร้อนเท่าใด? (c น้ำ = 4200 J/kg°C)", answer: "Q = 168,000 J", points: 300 }, { question: "น้ำแข็ง 1 kg -10°C ทำให้ร้อนเป็น 0°C ใช้ความร้อนเท่าใด? (c น้ำแข็ง = 2100 J/kg°C)", answer: "Q = 21,000 J", points: 400 }], [{ question: "หลอมเหลวน้ำแข็ง 0.5 kg ที่ 0°C ใช้ความร้อนเท่าใด? (L = 334,000 J/kg)", answer: "Q = 167,000 J", points: 100 }, { question: "น้ำแข็ง 2 kg หลอมเหลวหมดที่ 0°C ใช้ความร้อนเท่าใด?", answer: "Q = 668,000 J", points: 200 }, { question: "ให้ความร้อน 334,000 J กับน้ำแข็งที่ 0°C จะละลายได้กี่ kg?", answer: "1 kg", points: 300 }, { question: "ความร้อนที่ใช้หลอมน้ำแข็ง 1 kg ทำให้น้ำ 1 kg ร้อนขึ้นกี่องศา?", answer: "≈ 79.5°C", points: 400 }], [{ question: "ทำให้น้ำ 1 kg ที่ 100°C กลายเป็นไอทั้งหมด ใช้ความร้อนเท่าใด? (L = 2,260,000 J/kg)", answer: "Q = 2,260,000 J", points: 100 }, { question: "ทำให้น้ำ 0.2 kg ที่ 100°C กลายเป็นไอหมด ใช้ความร้อนเท่าใด?", answer: "Q = 452,000 J", points: 200 }, { question: "ไอน้ำ 0.1 kg ที่ 100°C ควบแน่นเป็นน้ำหมด จะคายความร้อนเท่าใด?", answer: "Q = 226,000 J", points: 300 }, { question: "ความร้อนจากการกลายเป็นไอของน้ำ 1 kg ทำให้น้ำ 100 kg ร้อนขึ้นกี่องศา?", answer: "≈ 5.38°C", points: 400 }]] };
+        const gameData3 = { categories: ["4 แถบสี (ค่าต่ำ)", "4 แถบสี (ค่าสูง)", "5 แถบสี (ค่าต่ำ)", "5 แถบสี (ค่าสูง)"], questions: [[{ question: "น้ำตาล, ดำ, แดง, ทอง", answer: "1kΩ ±5%", points: 100 }, { question: "แดง, แดง, น้ำตาล, ทอง", answer: "220Ω ±5%", points: 200 }, { question: "เหลือง, ม่วง, ดำ, เงิน", answer: "47Ω ±10%", points: 300 }, { question: "ส้ม, ส้ม, แดง, ทอง", answer: "3.3kΩ ±5%", points: 400 }], [{ question: "น้ำเงิน, เทา, เหลือง, ทอง", answer: "680kΩ ±5%", points: 100 }, { question: "เขียว, น้ำเงิน, ส้ม, เงิน", answer: "56kΩ ±10%", points: 200 }, { question: "ขาว, ม่วง, เหลือง, ทอง", answer: "9.7MΩ ±5%", points: 300 }, { question: "เทา, แดง, เขียว, เงิน", answer: "8.2MΩ ±10%", points: 400 }], [{ question: "น้ำตาล, ดำ, ดำ, น้ำตาล, น้ำตาล", answer: "1kΩ ±1%", points: 100 }, { question: "แดง, ม่วง, ดำ, ดำ, แดง", answer: "270Ω ±2%", points: 200 }, { question: "ส้ม, ขาว, ดำ, ทอง, เขียว", answer: "39Ω ±0.5%", points: 300 }, { question: "เหลือง, น้ำตาล, เขียว, แดง, ม่วง", answer: "41.5kΩ ±0.1%", points: 400 }], [{ question: "เขียว, ดำ, ส้ม, แดง, น้ำตาล", answer: "503kΩ ±1%", points: 100 }, { question: "น้ำเงิน, เขียว, เหลือง, ส้ม, แดง", answer: "654kΩ ±2%", points: 200 }, { question: "ม่วง, แดง, น้ำเงิน, ส้ม, น้ำเงิน", answer: "7.26MΩ ±0.25%", points: 300 }, { question: "ขาว, ดำ, ดำ, เหลือง, เขียว", answer: "9MΩ ±0.5%", points: 400 }]] };
         
-        // --- GAME DATA 3: Resistor Color Code ---
-        const gameData3 = {
-            categories: ["4 แถบสี (ค่าต่ำ)", "4 แถบสี (ค่าสูง)", "5 แถบสี (ค่าต่ำ)", "5 แถบสี (ค่าสูง)"],
-            questions: [
-                [{ question: "น้ำตาล, ดำ, แดง, ทอง", answer: "1kΩ ±5%", points: 100 }, { question: "แดง, แดง, น้ำตาล, ทอง", answer: "220Ω ±5%", points: 200 }, { question: "เหลือง, ม่วง, ดำ, เงิน", answer: "47Ω ±10%", points: 300 }, { question: "ส้ม, ส้ม, แดง, ทอง", answer: "3.3kΩ ±5%", points: 400 }],
-                [{ question: "น้ำเงิน, เทา, เหลือง, ทอง", answer: "680kΩ ±5%", points: 100 }, { question: "เขียว, น้ำเงิน, ส้ม, เงิน", answer: "56kΩ ±10%", points: 200 }, { question: "ขาว, ม่วง, เหลือง, ทอง", answer: "9.7MΩ ±5%", points: 300 }, { question: "เทา, แดง, เขียว, เงิน", answer: "8.2MΩ ±10%", points: 400 }],
-                [{ question: "น้ำตาล, ดำ, ดำ, น้ำตาล, น้ำตาล", answer: "1kΩ ±1%", points: 100 }, { question: "แดง, ม่วง, ดำ, ดำ, แดง", answer: "270Ω ±2%", points: 200 }, { question: "ส้ม, ขาว, ดำ, ทอง, เขียว", answer: "39Ω ±0.5%", points: 300 }, { question: "เหลือง, น้ำตาล, เขียว, แดง, ม่วง", answer: "41.5kΩ ±0.1%", points: 400 }],
-                [{ question: "เขียว, ดำ, ส้ม, แดง, น้ำตาล", answer: "503kΩ ±1%", points: 100 }, { question: "น้ำเงิน, เขียว, เหลือง, ส้ม, แดง", answer: "654kΩ ±2%", points: 200 }, { question: "ม่วง, แดง, น้ำเงิน, ส้ม, น้ำเงิน", answer: "7.26MΩ ±0.25%", points: 300 }, { question: "ขาว, ดำ, ดำ, เหลือง, เขียว", answer: "9MΩ ±0.5%", points: 400 }]
-            ]
-        };
+        let gameData4; // Will be generated on initialization
+
+        // --- GAME DATA 4: Mixed Questions Function ---
+        function createMixedQuestionsGameData() {
+            const heatElectricQuestions = [ { question: "เครื่องทำน้ำร้อน 1000W ใช้ต้มน้้ำ 1kg นาน 42 วินาที อุณหภูมิจะสูงขึ้นกี่องศา? (c=4200)", answer: "10 °C", points: 200 }, { question: "กาต้มน้ำ 2100W ใช้ต้มน้้ำ 1kg ให้ร้อนขึ้น 30°C จะใช้เวลากี่วินาที? (c=4200)", answer: "60 วินาที", points: 300 }, { question: "เตาไฟฟ้า 700W ให้ความร้อนกับน้ำ 2kg นาน 1 นาที อุณหภูมิจะสูงขึ้นกี่องศา? (c=4200)", answer: "5 °C", points: 400 }, { question: "ให้ความร้อนน้ำ 0.5kg นาน 21 วินาที จนร้อนขึ้น 20°C ต้องใช้กำลังไฟฟ้าเท่าใด? (c=4200)", answer: "2000 W", points: 300 }, { question: "เครื่องทำน้ำอุ่น 2100W ให้ความร้อนกับน้ำ 5kg นาน 100 วินาที อุณหภูมิจะสูงขึ้นกี่องศา? (c=4200)", answer: "10 °C", points: 400 }, ];
+            const tempConvertQuestions = [ { question: "แปลงอุณหภูมิ 10°C เป็น ฟาเรนไฮต์", answer: "50 °F", points: 100 }, { question: "แปลงอุณหภูมิ 77°F เป็น เซลเซียส", answer: "25 °C", points: 100 }, { question: "แปลงอุณหภูมิ 50°C เป็น โรเมอร์", answer: "40 °Ré", points: 200 }, { question: "แปลงอุณหภูมิ 32°F เป็น เคลวิน (ใช้ค่าประมาณ)", answer: "273 K", points: 200 }, { question: "แปลงอุณหภูมิ -40°F เป็น เซลเซียส", answer: "-40 °C", points: 300 }, ];
+            const resistorQuestions = [ { question: "อ่านค่าตัวต้านทาน: น้ำตาล, ดำ, ส้ม, ทอง", answer: "10kΩ ±5%", points: 100 }, { question: "อ่านค่าตัวต้านทาน: แดง, ม่วง, แดง, ทอง", answer: "2.7kΩ ±5%", points: 200 }, { question: "อ่านค่าตัวต้านทาน: เหลือง, ม่วง, น้ำตาล, ทอง", answer: "470Ω ±5%", points: 200 }, { question: "อ่านค่าตัวต้านทาน: เขียว, น้ำเงิน, ดำ, ทอง", answer: "56Ω ±5%", points: 300 }, { question: "อ่านค่าตัวต้านทาน: ส้ม, ขาว, เหลือง, เงิน", answer: "390kΩ ±10%", points: 400 }, ];
+            let allQuestions = [...heatElectricQuestions, ...heatElectricQuestions, ...tempConvertQuestions, ...resistorQuestions].sort(() => 0.5 - Math.random());
+            let structuredQuestions = [];
+            for (let i = 0; i < 5; i++) { structuredQuestions.push(allQuestions.slice(i * 4, (i + 1) * 4)); }
+            return { categories: ["ชุดที่ 1", "ชุดที่ 2", "ชุดที่ 3", "ชุดที่ 4", "ชุดที่ 5"], questions: structuredQuestions };
+        }
+
+        // --- REWARDS for Page 4 ---
+        const rewards = [
+            { type: 'text', template: "สุดยอด! ได้รับการ์ดพิเศษ {n} ใบ", range: [1, 5] },
+            { type: 'text', template: "จอมโจร! ขโมยการ์ดจากทีมอื่นได้ทีมละ {n} ใบ", range: [1, 5] },
+            { type: 'points', template: "โบนัสแตก! ได้คะแนนพิเศษ {n} คะแนน", range: [100000, 5000000] },
+            { type: 'text', template: "เพื่อนช่วยเพื่อน! ให้ทีมอื่นเลือกการ์ดให้คุณ {n} ใบ", range: [1, 5] },
+            { type: 'text', template: "ดึงตัว! สมาชิกจากทีมอื่น {n} คนย้ายมาอยู่ทีมคุณ", range: [1, 2] }
+        ];
 
         let scores = [];
-        let askedQuestions1 = [], askedQuestions2 = [], askedQuestions3 = [];
-        let gameInitialized = { 1: false, 2: false, 3: false };
+        let askedQuestions1 = [], askedQuestions2 = [], askedQuestions3 = [], askedQuestions4 = [];
+        let gameInitialized = { 1: false, 2: false, 3: false, 4: false };
         let resetAction = null;
 
-        const gameContainers = {
-            1: document.getElementById('game-container-1'),
-            2: document.getElementById('game-container-2'),
-            3: document.getElementById('game-container-3')
-        };
-        const pageBtns = {
-            1: document.getElementById('page1-btn'),
-            2: document.getElementById('page2-btn'),
-            3: document.getElementById('page3-btn')
-        };
+        const gameContainers = { 1: document.getElementById('game-container-1'), 2: document.getElementById('game-container-2'), 3: document.getElementById('game-container-3'), 4: document.getElementById('game-container-4') };
+        const pageBtns = { 1: document.getElementById('page1-btn'), 2: document.getElementById('page2-btn'), 3: document.getElementById('page3-btn'), 4: document.getElementById('page4-btn') };
         
         const questionModal = document.getElementById('question-modal');
+        const rewardModal = document.getElementById('reward-modal');
         const resetModal = document.getElementById('reset-modal');
         const confirmResetBtn = document.getElementById('confirm-reset-btn');
         const cancelResetBtn = document.getElementById('cancel-reset-btn');
 
         function resetAll() {
             scores = new Array(teams.length).fill(0);
-            initializeBoard(1);
-            initializeBoard(2);
-            initializeBoard(3);
+            Object.keys(gameInitialized).forEach(pageNum => initializeBoard(pageNum));
             updateAllScoreboards();
         }
 
         function initializeBoard(gameNum) {
-            if (gameNum === 1) {
-                askedQuestions1 = gameData1.questions.map(cat => cat.map(() => false));
-                renderGameBoard(gameData1, askedQuestions1, 'game-board-1', 1);
-            } else if (gameNum === 2) {
-                askedQuestions2 = gameData2.questions.map(cat => cat.map(() => false));
-                renderGameBoard(gameData2, askedQuestions2, 'game-board-2', 2);
-            } else if (gameNum === 3) {
-                askedQuestions3 = gameData3.questions.map(cat => cat.map(() => false));
-                renderGameBoard(gameData3, askedQuestions3, 'game-board-3', 3);
+            gameNum = Number(gameNum);
+            if (gameNum === 1) { askedQuestions1 = gameData1.questions.map(cat => cat.map(() => false)); renderGameBoard(gameData1, askedQuestions1, 'game-board-1', 1); } 
+            else if (gameNum === 2) { askedQuestions2 = gameData2.questions.map(cat => cat.map(() => false)); renderGameBoard(gameData2, askedQuestions2, 'game-board-2', 2); } 
+            else if (gameNum === 3) { askedQuestions3 = gameData3.questions.map(cat => cat.map(() => false)); renderGameBoard(gameData3, askedQuestions3, 'game-board-3', 3); } 
+            else if (gameNum === 4) { 
+                gameData4 = createMixedQuestionsGameData(); // Re-shuffle questions
+                askedQuestions4 = gameData4.questions.map(cat => cat.map(() => false)); 
+                renderGameBoard(gameData4, askedQuestions4, 'game-board-4', 4); 
             }
             renderScoreboard(teams, scores, `scoreboard-${gameNum}`);
             gameInitialized[gameNum] = true;
         }
 
         function updateAllScoreboards() {
-            for (let i = 1; i <= 3; i++) {
-                if(gameInitialized[i]) {
-                    renderScoreboard(teams, scores, `scoreboard-${i}`);
-                }
-            }
+            Object.keys(gameInitialized).forEach(pageNum => {
+                 if(gameInitialized[pageNum]) { renderScoreboard(teams, scores, `scoreboard-${pageNum}`); }
+            });
         }
 
         function renderScoreboard(teams, scores, elementId) {
@@ -232,10 +242,7 @@
             teams.forEach((team, index) => {
                 const teamCard = document.createElement('div');
                 teamCard.className = 'team-score-card p-4 rounded-lg text-center';
-                teamCard.innerHTML = `
-                    <h2 class="text-xl font-bold">${team}</h2>
-                    <p class="text-3xl font-bold">${scores[index]}</p>
-                `;
+                teamCard.innerHTML = `<h2 class="text-xl font-bold">${team}</h2><p class="text-3xl font-bold">${scores[index].toLocaleString('th-TH')}</p>`;
                 scoreboard.appendChild(teamCard);
             });
         }
@@ -268,19 +275,20 @@
         function handleCardClick(event, gameNum) {
             const card = event.currentTarget;
             if (card.classList.contains('asked')) return;
-            
-            let gameData, askedQuestions;
-            if (gameNum === 1) { [gameData, askedQuestions] = [gameData1, askedQuestions1]; }
-            else if (gameNum === 2) { [gameData, askedQuestions] = [gameData2, askedQuestions2]; }
-            else { [gameData, askedQuestions] = [gameData3, askedQuestions3]; }
 
             const catIndex = card.dataset.categoryIndex;
             const qIndex = card.dataset.questionIndex;
-            const questionData = gameData.questions[catIndex][qIndex];
+
+            let gameData, askedQuestions;
+            if (gameNum === 1) { [gameData, askedQuestions] = [gameData1, askedQuestions1]; }
+            else if (gameNum === 2) { [gameData, askedQuestions] = [gameData2, askedQuestions2]; }
+            else if (gameNum === 3) { [gameData, askedQuestions] = [gameData3, askedQuestions3]; }
+            else { [gameData, askedQuestions] = [gameData4, askedQuestions4]; }
 
             askedQuestions[catIndex][qIndex] = true;
             card.classList.add('asked');
-
+            
+            const questionData = gameData.questions[catIndex][qIndex];
             showQuestionModal(questionData, gameData.categories[catIndex], gameNum);
         }
 
@@ -296,7 +304,11 @@
                 const button = document.createElement('button');
                 button.className = 'btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full';
                 button.textContent = `ให้ ${team}`;
-                button.onclick = () => awardPoints(index, questionData.points);
+                if (gameNum === 4) {
+                    button.onclick = () => awardPointsAndShowReward(index, questionData.points);
+                } else {
+                    button.onclick = () => awardPoints(index, questionData.points);
+                }
                 awardButtonsContainer.appendChild(button);
             });
             const noScoreButton = document.createElement('button');
@@ -307,7 +319,6 @@
 
             document.getElementById('modal-answer-container').classList.add('hidden');
             document.getElementById('reveal-answer-btn').classList.remove('hidden');
-            
             questionModal.classList.remove('hidden');
         }
 
@@ -317,14 +328,63 @@
             questionModal.classList.add('hidden');
         }
 
+        function awardPointsAndShowReward(teamIndex, points) {
+            scores[teamIndex] += points;
+            updateAllScoreboards();
+            questionModal.classList.add('hidden');
+            showRewardModal();
+        }
+        
+        function randomInRange(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        function showRewardModal() {
+            let chosenReward;
+            const randomNumber = Math.random() * 100; // สุ่มตัวเลข 0-99.99
+
+            // 5% chance for team swap
+            if (randomNumber < 5) { 
+                chosenReward = rewards.find(r => r.template.includes("ดึงตัว"));
+            } else { 
+            // 95% chance for other rewards
+                const otherRewards = rewards.filter(r => !r.template.includes("ดึงตัว"));
+                chosenReward = otherRewards[Math.floor(Math.random() * otherRewards.length)];
+            }
+            
+            const n = randomInRange(chosenReward.range[0], chosenReward.range[1]);
+            const rewardText = chosenReward.template.replace('{n}', n.toLocaleString('th-TH'));
+
+            document.getElementById('reward-text').textContent = rewardText;
+
+            const rewardButtonsContainer = document.getElementById('reward-buttons');
+            rewardButtonsContainer.innerHTML = '';
+            teams.forEach((team, index) => {
+                const button = document.createElement('button');
+                button.className = 'btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full';
+                button.textContent = `ให้ ${team}`;
+                button.onclick = () => assignReward(index, chosenReward, n);
+                rewardButtonsContainer.appendChild(button);
+            });
+            
+            rewardModal.classList.remove('hidden');
+        }
+
+        function assignReward(teamIndex, rewardInfo, value) {
+            if (rewardInfo.type === 'points') {
+                scores[teamIndex] += value;
+                updateAllScoreboards();
+            }
+            rewardModal.classList.add('hidden');
+        }
+
         document.getElementById('reveal-answer-btn').addEventListener('click', () => {
             document.getElementById('modal-answer-container').classList.remove('hidden');
             document.getElementById('reveal-answer-btn').classList.add('hidden');
         });
 
-        document.getElementById('close-modal-btn').addEventListener('click', () => {
-            questionModal.classList.add('hidden');
-        });
+        document.getElementById('close-modal-btn').addEventListener('click', () => questionModal.classList.add('hidden'));
+        document.getElementById('close-reward-modal-btn').addEventListener('click', () => rewardModal.classList.add('hidden'));
 
         document.querySelectorAll('.reset-btn').forEach(button => {
             button.addEventListener('click', (e) => {
@@ -342,28 +402,27 @@
         confirmResetBtn.addEventListener('click', () => {
             if (resetAction === 'full') {
                 resetAll();
-            } else if (resetAction === 'page1') {
-                initializeBoard(1);
-            } else if (resetAction === 'page2') {
-                initializeBoard(2);
-            } else if (resetAction === 'page3') {
-                initializeBoard(3);
+            } else if (resetAction.startsWith('page')) {
+                initializeBoard(resetAction.replace('page', ''));
             }
             resetModal.classList.add('hidden');
         });
 
-        cancelResetBtn.addEventListener('click', () => {
-            resetModal.classList.add('hidden');
-        });
+        cancelResetBtn.addEventListener('click', () => resetModal.classList.add('hidden'));
         
         function switchPage(pageNum) {
             Object.values(gameContainers).forEach(c => c.classList.add('hidden'));
             gameContainers[pageNum].classList.remove('hidden');
 
-            Object.values(pageBtns).forEach(b => b.classList.remove('nav-btn-active', 'bg-blue-600', 'bg-purple-600', 'bg-green-600'));
+            Object.values(pageBtns).forEach(b => b.classList.remove('nav-btn-active', 'bg-blue-600', 'bg-purple-600', 'bg-green-600', 'bg-orange-600'));
             Object.values(pageBtns).forEach(b => b.classList.add('bg-gray-500'));
             
-            let activeColor = pageNum === 1 ? 'bg-blue-600' : pageNum === 2 ? 'bg-purple-600' : 'bg-green-600';
+            let activeColor;
+            if (pageNum == 1) activeColor = 'bg-blue-600';
+            else if (pageNum == 2) activeColor = 'bg-purple-600';
+            else if (pageNum == 3) activeColor = 'bg-green-600';
+            else if (pageNum == 4) activeColor = 'bg-orange-600';
+
             pageBtns[pageNum].classList.add('nav-btn-active', activeColor);
             pageBtns[pageNum].classList.remove('bg-gray-500');
 
@@ -372,9 +431,9 @@
             }
         }
         
-        pageBtns[1].addEventListener('click', () => switchPage(1));
-        pageBtns[2].addEventListener('click', () => switchPage(2));
-        pageBtns[3].addEventListener('click', () => switchPage(3));
+        Object.keys(pageBtns).forEach(pageNum => {
+            pageBtns[pageNum].addEventListener('click', () => switchPage(pageNum));
+        });
 
         // Initial load
         resetAll();
