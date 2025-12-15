@@ -46,6 +46,15 @@
         .bg-r-white { background-color: white; border: 1px solid #ddd;}
         .bg-r-gold { background: linear-gradient(to bottom, #FFD700, #FDB931); }
         .bg-r-silver { background: linear-gradient(to bottom, #C0C0C0, #E0E0E0); }
+
+        /* Animation for Special Rule */
+        @keyframes popIn {
+            0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+            100% { transform: scale(1) rotate(-1deg); opacity: 1; }
+        }
+        .rule-pop {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 flex flex-col items-center">
@@ -106,7 +115,7 @@
                             <option value="elec_heat">⚡ ไฟฟ้าเป็นความร้อน</option>
                         </select>
                         <button onclick="generateQuestion()" class="btn-push bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg flex items-center gap-2">
-                            <i class="fas fa-dice"></i> สุ่มโจทย์ใหม่
+                            <i class="fas fa-bolt"></i> สุ่มโจทย์ & เริ่ม!
                         </button>
                     </div>
 
@@ -114,8 +123,15 @@
                         <span id="categoryBadge" class="absolute top-4 left-4 bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded border border-indigo-400">หัวข้อ</span>
                         
                         <div id="questionContent" class="text-center w-full">
+                            
+                            <!-- Special Rule Container -->
+                            <div id="specialRuleContainer" class="hidden mb-6 p-4 bg-yellow-100 border-2 border-yellow-400 text-yellow-800 rounded-xl shadow-md transform -rotate-1 mx-auto max-w-md rule-pop">
+                                <h4 class="font-extrabold text-xl mb-1"><i class="fas fa-exclamation-circle"></i> กติกาพิเศษ!</h4>
+                                <p id="specialRuleText" class="text-lg font-bold"></p>
+                            </div>
+
                             <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 leading-relaxed" id="questionText">
-                                กดปุ่ม "สุ่มโจทย์ใหม่" เพื่อเริ่มเกม
+                                กดปุ่ม "สุ่มโจทย์ & เริ่ม!" เพื่อเริ่มเกม
                             </h3>
                             <div id="visualContent" class="my-4 flex justify-center h-24"></div>
                         </div>
@@ -254,10 +270,10 @@
             }
         }
 
-        function resetTimer() {
+        function resetTimer(customTime = 300) {
             clearInterval(timerInterval);
             isRunning = false;
-            timeLeft = 300;
+            timeLeft = customTime;
             updateTimerDisplay();
             const btn = document.getElementById('timerBtn');
             btn.textContent = "Start";
@@ -485,6 +501,19 @@
             }
         };
 
+        // --- FUNNY RULES (CHALLENGE MODE) ---
+        const specialRules = [
+            "คนตอบต้องยืนขาเดียวจนกว่าจะตอบเสร็จ 🦩",
+          
+            "ห้ามใช้มือขวาเขียนคำตอบ (ใช้มือซ้ายเท่านั้น) ✍️",
+           
+            "Speed Run! ข้อนี้มีเวลาแค่ 1 นาทีเท่านั้น ⏱️",
+        
+            "หัวหน้าทีมต้องเต้นไก่ย่าง 1 รอบก่อนตอบ 🐔",
+            
+            
+        ];
+
         // --- MAIN LOGIC ---
 
         function generateQuestion() {
@@ -514,9 +543,8 @@
             };
             document.getElementById('categoryBadge').textContent = names[topic];
 
-            // Generate
+            // Generate Question
             const data = generators[topic]();
-            
             document.getElementById('questionText').innerHTML = data.q;
             if(data.visual) {
                 document.getElementById('visualContent').innerHTML = data.visual;
@@ -526,17 +554,35 @@
             document.getElementById('answerText').innerHTML = data.a;
             document.getElementById('explanationText').innerHTML = data.exp;
 
-            // Auto Reset Timer
-            resetTimer();
+            // --- SPECIAL RULE LOGIC ---
+            const ruleContainer = document.getElementById('specialRuleContainer');
+            const ruleText = document.getElementById('specialRuleText');
+            
+            // 60% chance of special rule
+            if (Math.random() > 0.4) {
+                const rule = pick(specialRules);
+                ruleText.textContent = rule;
+                ruleContainer.classList.remove('hidden');
+                
+                // Special Timer Logic for "Speed Run" rule
+                if(rule.includes("1 นาที")) {
+                    resetTimer(60); // Set to 60s
+                } else {
+                    resetTimer(300); // Normal 5 mins
+                }
+            } else {
+                ruleContainer.classList.add('hidden');
+                resetTimer(300); // Normal 5 mins
+            }
+
+            // --- AUTO START TIMER ---
+            toggleTimer(); // This starts the timer because resetTimer() set isRunning to false
         }
 
         function showAnswer() {
             document.getElementById('answerSection').classList.remove('hidden');
             document.getElementById('showAnsBtn').classList.add('hidden');
         }
-
-        // Init
-        // Don't auto generate on load, wait for user.
     </script>
 </body>
 </html>
