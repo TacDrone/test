@@ -3,444 +3,540 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เกมตอบคำถามหน้าห้องเรียน</title>
+    <title>เกมตอบคำถามฟิสิกส์ - Physics Battle</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            font-family: 'Kanit', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            color: white;
         }
         .card {
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        .card.asked {
-            background-color: rgba(0, 0, 0, 0.3);
-            color: rgba(255, 255, 255, 0.5);
-            cursor: not-allowed;
-        }
-        .card.asked:hover {
-            transform: none;
-            box-shadow: none;
-        }
-        .modal {
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-        }
-        .modal-content {
-            background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
-        }
-        .reward-modal-content {
-             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-        }
-        .btn {
-            transition: all 0.2s ease;
-        }
-        .btn:hover {
-            transform: scale(1.05);
-        }
-        .team-score-card {
-            background-color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             color: #333;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .nav-btn-active {
-            box-shadow: 0 0 15px rgba(255,255,255,0.7);
-            transform: scale(1.05);
+        .btn-push {
+            transition: all 0.1s;
         }
+        .btn-push:active {
+            transform: translateY(4px);
+        }
+        .resistor-band {
+            display: inline-block;
+            width: 30px;
+            height: 80px;
+            margin: 0 2px;
+            border: 1px solid #333;
+        }
+        /* Custom Colors for Resistors */
+        .bg-r-black { background-color: black; }
+        .bg-r-brown { background-color: #8B4513; }
+        .bg-r-red { background-color: red; }
+        .bg-r-orange { background-color: orange; }
+        .bg-r-yellow { background-color: yellow; }
+        .bg-r-green { background-color: green; }
+        .bg-r-blue { background-color: blue; }
+        .bg-r-violet { background-color: violet; }
+        .bg-r-grey { background-color: grey; }
+        .bg-r-white { background-color: white; border: 1px solid #ddd;}
+        .bg-r-gold { background: linear-gradient(to bottom, #FFD700, #FDB931); }
+        .bg-r-silver { background: linear-gradient(to bottom, #C0C0C0, #E0E0E0); }
     </style>
 </head>
-<body class="text-white min-h-screen flex flex-col items-center p-4">
+<body class="p-4 md:p-8 flex flex-col items-center">
 
-    <div class="w-full max-w-7xl mx-auto">
-        <!-- Navigation Buttons -->
-        <div class="flex flex-wrap justify-center gap-4 mb-6">
-            <button id="page1-btn" class="btn bg-blue-600 text-white font-bold py-2 px-6 rounded-full nav-btn-active">1. แปลงหน่วยอุณหภูมิ</button>
-            <button id="page2-btn" class="btn bg-gray-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-full">2. การคำนวณความร้อน</button>
-            <button id="page3-btn" class="btn bg-gray-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">3. อ่านแถบสีตัวต้านทาน</button>
-            <button id="page4-btn" class="btn bg-gray-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-full">4. คำถามวัดดวง</button>
-        </div>
-
-        <!-- Game Page 1 -->
-        <div id="game-container-1">
-            <h1 class="text-4xl md:text-5xl font-bold text-center mb-6 text-shadow">เกมแปลงหน่วยอุณหภูมิ</h1>
-            <div id="scoreboard-1" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
-            <div id="game-board-1" class="grid grid-cols-4 gap-4"></div>
-            <div class="mt-8 text-center">
-                <button data-reset-type="page1" class="reset-btn btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-lg">
-                    ล้างกระดานหน้านี้
-                </button>
+    <!-- Setup Screen (Overlay) -->
+    <div id="setupScreen" class="fixed inset-0 bg-gray-900 z-50 flex flex-col items-center justify-center p-4">
+        <h1 class="text-4xl md:text-6xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500">Physics Battle</h1>
+        <div class="bg-white p-8 rounded-xl w-full max-w-lg text-gray-800">
+            <h2 class="text-2xl font-bold mb-4 text-center">ตั้งชื่อทีม</h2>
+            <div class="space-y-4">
+                <input type="text" id="team1NameInput" value="ทีม A" class="w-full p-3 border rounded text-lg focus:ring-2 ring-blue-500" placeholder="ชื่อทีม 1">
+                <input type="text" id="team2NameInput" value="ทีม B" class="w-full p-3 border rounded text-lg focus:ring-2 ring-red-500" placeholder="ชื่อทีม 2">
+                <input type="text" id="team3NameInput" value="ทีม C" class="w-full p-3 border rounded text-lg focus:ring-2 ring-green-500" placeholder="ชื่อทีม 3">
             </div>
-        </div>
-
-        <!-- Game Page 2 (initially hidden) -->
-        <div id="game-container-2" class="hidden">
-            <h1 class="text-4xl md:text-5xl font-bold text-center mb-6 text-shadow">เกมคำนวณความร้อน (Q=mcΔT, Q=mL)</h1>
-            <div id="scoreboard-2" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
-            <div id="game-board-2" class="grid grid-cols-3 gap-4"></div>
-            <div class="mt-8 text-center">
-                <button data-reset-type="page2" class="reset-btn btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-lg">
-                    ล้างกระดานหน้านี้
-                </button>
-            </div>
-        </div>
-
-        <!-- Game Page 3 (initially hidden) -->
-        <div id="game-container-3" class="hidden">
-            <h1 class="text-4xl md:text-5xl font-bold text-center mb-6 text-shadow">เกมอ่านแถบสีตัวต้านทาน</h1>
-            <div id="scoreboard-3" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
-            <div id="game-board-3" class="grid grid-cols-4 gap-4"></div>
-            <div class="mt-8 text-center">
-                <button data-reset-type="page3" class="reset-btn btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-lg">
-                    ล้างกระดานหน้านี้
-                </button>
-            </div>
-        </div>
-
-        <!-- Game Page 4 (initially hidden) -->
-        <div id="game-container-4" class="hidden">
-            <h1 class="text-4xl md:text-5xl font-bold text-center mb-6 text-shadow">เกมคำถามวัดดวง (+สุ่มรางวัล)</h1>
-            <div id="scoreboard-4" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
-            <div id="game-board-4" class="grid grid-cols-5 gap-4"></div>
-            <div class="mt-8 text-center">
-                <button data-reset-type="page4" class="reset-btn btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-lg">
-                    ล้างกระดานหน้านี้
-                </button>
-            </div>
-        </div>
-        
-        <hr class="my-8 border-t-2 border-white/30">
-        
-        <div class="text-center">
-             <button data-reset-type="full" class="reset-btn btn bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-xl text-lg">
-                รีเซ็ตคะแนนและเกมทั้งหมด
+            <button onclick="startGame()" class="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg text-xl shadow-lg transform hover:scale-105 transition">
+                เริ่มการแข่งขัน 🚀
             </button>
         </div>
     </div>
 
-    <!-- Question Modal -->
-    <div id="question-modal" class="modal fixed inset-0 w-full h-full flex items-center justify-center hidden">
-        <div class="modal-content w-11/12 md:w-2/3 max-w-4xl p-8 rounded-2xl shadow-2xl text-gray-800 flex flex-col items-center text-center">
-            <p class="text-lg font-semibold mb-2" id="modal-category"></p>
-            <p class="text-4xl font-bold mb-4" id="modal-points"></p>
-            <p class="text-2xl md:text-3xl mb-8 min-h-[100px]" id="modal-question"></p>
-            <div id="modal-answer-container" class="hidden w-full">
-                <p class="text-xl font-bold mb-2">คำตอบคือ:</p>
-                <p class="text-3xl md:text-4xl font-bold text-green-700 mb-8" id="modal-answer"></p>
-                <p class="text-lg font-semibold mb-4">ให้คะแนนทีม:</p>
-                <div id="award-buttons" class="flex flex-wrap justify-center gap-4"></div>
+    <!-- Main Game Area -->
+    <div class="w-full max-w-7xl mx-auto hidden" id="gameArea">
+        
+        <!-- Header & Timer -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl font-bold text-white drop-shadow-md">Physics Battle Phase</h1>
+                <p class="text-yellow-200">โจทย์ฟิสิกส์ประลองปัญญา</p>
             </div>
-            <button id="reveal-answer-btn" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg">แสดงคำตอบ</button>
-            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-700 hover:text-gray-900 text-3xl font-bold">&times;</button>
-        </div>
-    </div>
+            
+            <div class="bg-gray-900 px-6 py-3 rounded-xl border-2 border-yellow-400 flex items-center gap-4 shadow-xl">
+                <i class="fas fa-stopwatch text-3xl text-yellow-400"></i>
+                <div id="timerDisplay" class="text-5xl font-mono font-bold text-white">05:00</div>
+                <div class="flex flex-col gap-1">
+                    <button onclick="toggleTimer()" id="timerBtn" class="bg-green-600 hover:bg-green-500 text-xs px-2 py-1 rounded text-white font-bold uppercase">Start</button>
+                    <button onclick="resetTimer()" class="bg-red-600 hover:bg-red-500 text-xs px-2 py-1 rounded text-white font-bold uppercase">Reset</button>
+                </div>
+            </div>
+        </header>
 
-    <!-- Reward Modal -->
-    <div id="reward-modal" class="modal fixed inset-0 w-full h-full flex items-center justify-center hidden">
-        <div class="reward-modal-content w-11/12 md:w-2/3 max-w-4xl p-8 rounded-2xl shadow-2xl text-gray-800 flex flex-col items-center text-center">
-            <h2 class="text-4xl font-bold mb-4 text-orange-800">🎉 ตอบถูก! รับรางวัลพิเศษ! 🎉</h2>
-            <p class="text-2xl md:text-3xl font-bold mb-8 min-h-[100px] text-orange-900" id="reward-text"></p>
-            <p class="text-lg font-semibold mb-4">มอบรางวัลให้กับทีม:</p>
-            <div id="reward-buttons" class="flex flex-wrap justify-center gap-4"></div>
-            <button id="close-reward-modal-btn" class="absolute top-4 right-4 text-gray-700 hover:text-gray-900 text-3xl font-bold">&times;</button>
-        </div>
-    </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Question Area (Left - 2 Cols) -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Topic Selector & Generator -->
+                <div class="card p-6">
+                    <div class="flex flex-wrap gap-2 mb-4 justify-center">
+                        <select id="topicSelect" class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                            <option value="all">🔀 สุ่มทุกหัวข้อ</option>
+                            <option value="work_energy">⚙️ งานและพลังงาน</option>
+                            <option value="cons_energy_no_loss">🔋 กฎอนุรักษ์ (ไม่สูญเสีย)</option>
+                            <option value="cons_energy_loss">🔥 กฎอนุรักษ์ (สูญเสีย)</option>
+                            <option value="resistor_code">🌈 แถบสีตัวต้านทาน</option>
+                            <option value="circuit">🔌 วงจร (อนุกรม/ขนาน)</option>
+                            <option value="ray_optics">🔦 ทางเดินแสง (เลนส์/กระจก)</option>
+                            <option value="temp_conv">🌡️ เปลี่ยนหน่วยอุณหภูมิ</option>
+                            <option value="elec_heat">⚡ ไฟฟ้าเป็นความร้อน</option>
+                        </select>
+                        <button onclick="generateQuestion()" class="btn-push bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg flex items-center gap-2">
+                            <i class="fas fa-dice"></i> สุ่มโจทย์ใหม่
+                        </button>
+                    </div>
 
-    <!-- Reset Confirmation Modal -->
-    <div id="reset-modal" class="modal fixed inset-0 w-full h-full flex items-center justify-center hidden">
-        <div class="modal-content w-11/12 md:w-1/3 max-w-lg p-8 rounded-2xl shadow-2xl text-gray-800 flex flex-col items-center text-center">
-            <p class="text-2xl font-bold mb-6" id="reset-modal-text"></p>
-            <div class="flex gap-4">
-                <button id="confirm-reset-btn" class="btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full">ใช่, ยืนยัน</button>
-                <button id="cancel-reset-btn" class="btn bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-full">ยกเลิก</button>
+                    <div class="relative min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 bg-blue-50">
+                        <span id="categoryBadge" class="absolute top-4 left-4 bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded border border-indigo-400">หัวข้อ</span>
+                        
+                        <div id="questionContent" class="text-center w-full">
+                            <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 leading-relaxed" id="questionText">
+                                กดปุ่ม "สุ่มโจทย์ใหม่" เพื่อเริ่มเกม
+                            </h3>
+                            <div id="visualContent" class="my-4 flex justify-center h-24"></div>
+                        </div>
+
+                        <!-- Answer Section (Hidden) -->
+                        <div id="answerSection" class="hidden mt-8 w-full pt-6 border-t border-gray-300 text-center animate-fade-in">
+                            <p class="text-sm text-gray-500 uppercase tracking-wider mb-2">เฉลย / คำตอบ</p>
+                            <p class="text-3xl font-bold text-green-600" id="answerText"></p>
+                            <p class="text-md text-gray-600 mt-2" id="explanationText"></p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex justify-center">
+                        <button onclick="showAnswer()" id="showAnsBtn" class="hidden bg-yellow-500 hover:bg-yellow-400 text-white font-bold py-3 px-8 rounded-full shadow-lg text-lg">
+                            <i class="fas fa-eye"></i> ดูเฉลย
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Scoreboard (Right - 1 Col) -->
+            <div class="lg:col-span-1 space-y-4">
+                <div class="card p-4 bg-gradient-to-b from-gray-50 to-gray-200">
+                    <h2 class="text-xl font-bold text-center mb-4 text-gray-700">🏆 คะแนนทีม</h2>
+                    
+                    <!-- Team 1 -->
+                    <div class="bg-white p-4 rounded-lg shadow mb-3 border-l-8 border-blue-500 flex justify-between items-center">
+                        <div>
+                            <h3 id="team1Name" class="font-bold text-lg text-gray-800">Team A</h3>
+                            <div class="text-4xl font-bold text-blue-600" id="score1">0</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <button onclick="adjustScore(1, 1)" class="w-10 h-10 rounded-full bg-green-100 text-green-600 hover:bg-green-200 font-bold text-xl">+</button>
+                            <button onclick="adjustScore(1, -1)" class="w-10 h-10 rounded-full bg-red-100 text-red-600 hover:bg-red-200 font-bold text-xl">-</button>
+                        </div>
+                    </div>
+
+                    <!-- Team 2 -->
+                    <div class="bg-white p-4 rounded-lg shadow mb-3 border-l-8 border-red-500 flex justify-between items-center">
+                        <div>
+                            <h3 id="team2Name" class="font-bold text-lg text-gray-800">Team B</h3>
+                            <div class="text-4xl font-bold text-red-600" id="score2">0</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <button onclick="adjustScore(2, 1)" class="w-10 h-10 rounded-full bg-green-100 text-green-600 hover:bg-green-200 font-bold text-xl">+</button>
+                            <button onclick="adjustScore(2, -1)" class="w-10 h-10 rounded-full bg-red-100 text-red-600 hover:bg-red-200 font-bold text-xl">-</button>
+                        </div>
+                    </div>
+
+                    <!-- Team 3 -->
+                    <div class="bg-white p-4 rounded-lg shadow mb-3 border-l-8 border-green-500 flex justify-between items-center">
+                        <div>
+                            <h3 id="team3Name" class="font-bold text-lg text-gray-800">Team C</h3>
+                            <div class="text-4xl font-bold text-green-600" id="score3">0</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <button onclick="adjustScore(3, 1)" class="w-10 h-10 rounded-full bg-green-100 text-green-600 hover:bg-green-200 font-bold text-xl">+</button>
+                            <button onclick="adjustScore(3, -1)" class="w-10 h-10 rounded-full bg-red-100 text-red-600 hover:bg-red-200 font-bold text-xl">-</button>
+                        </div>
+                    </div>
+
+                    <button onclick="resetScores()" class="w-full mt-4 text-gray-400 text-sm hover:text-red-500">Reset All Scores</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const teams = ["ทีมที่ 1", "ทีมที่ 2", "ทีมที่ 3", "ทีมที่ 4"];
-
-        // --- GAME DATA 1, 2, 3 (Same as before) ---
-        const gameData1 = { categories: ["เซลเซียส", "ฟาเรนไฮต์", "โรเมอร์", "เคลวิน"], questions: [[{ question: "แปลง 25°C เป็น ฟาเรนไฮต์", answer: "77°F", points: 100 }, { question: "แปลง 50°C เป็น เคลวิน", answer: "323.15 K", points: 200 }, { question: "แปลง 80°C เป็น โรเมอร์", answer: "64°Ré", points: 300 }, { question: "แปลง -40°C เป็น ฟาเรนไฮต์", answer: "-40°F", points: 400 }], [{ question: "แปลง 59°F เป็น เซลเซียส", answer: "15°C", points: 100 }, { question: "แปลง 95°F เป็น โรเมอร์", answer: "28°Ré", points: 200 }, { question: "แปลง 41°F เป็น เคลวิน", answer: "278.15 K", points: 300 }, { question: "แปลง -4°F เป็น เซลเซียส", answer: "-20°C", points: 400 }], [{ question: "แปลง 20°Ré เป็น เซลเซียส", answer: "25°C", points: 100 }, { question: "แปลง 40°Ré เป็น ฟาเรนไฮต์", answer: "122°F", points: 200 }, { question: "แปลง 80°Ré (จุดเดือด) เป็น เคลวิน", answer: "373.15 K", points: 300 }, { question: "แปลง 0°Ré (จุดเยือกแข็ง) เป็น ฟาเรนไฮต์", answer: "32°F", points: 400 }], [{ question: "แปลง 300 K เป็น เซลเซียส", answer: "26.85°C", points: 100 }, { question: "แปลง 273.15 K เป็น ฟาเรนไฮต์", answer: "32°F", points: 200 }, { question: "แปลง 310 K (อุณหภูมิร่างกาย) เป็น โรเมอร์", answer: "29.6°Ré", points: 300 }, { question: "แปลง 0 K (ศูนย์สัมบูรณ์) เป็น เซลเซียส", answer: "-273.15°C", points: 400 }]] };
-        const gameData2 = { categories: ["Q=mcΔT", "Q=mL (หลอมเหลว)", "Q=mL (กลายเป็นไอ)"], questions: [[{ question: "น้ำ 2 kg อุณหภูมิเพิ่ม 10°C ต้องใช้ความร้อนเท่าใด? (c น้ำ = 4200 J/kg°C)", answer: "Q = 84,000 J", points: 100 }, { question: "ให้ความร้อน 16,800 J กับน้ำ 1 kg อุณหภูมิจะเพิ่มขึ้นเท่าใด?", answer: "ΔT = 4°C", points: 200 }, { question: "น้ำ 500 กรัม 20°C ทำให้ร้อนเป็น 100°C ใช้ความร้อนเท่าใด? (c น้ำ = 4200 J/kg°C)", answer: "Q = 168,000 J", points: 300 }, { question: "น้ำแข็ง 1 kg -10°C ทำให้ร้อนเป็น 0°C ใช้ความร้อนเท่าใด? (c น้ำแข็ง = 2100 J/kg°C)", answer: "Q = 21,000 J", points: 400 }], [{ question: "หลอมเหลวน้ำแข็ง 0.5 kg ที่ 0°C ใช้ความร้อนเท่าใด? (L = 334,000 J/kg)", answer: "Q = 167,000 J", points: 100 }, { question: "น้ำแข็ง 2 kg หลอมเหลวหมดที่ 0°C ใช้ความร้อนเท่าใด?", answer: "Q = 668,000 J", points: 200 }, { question: "ให้ความร้อน 334,000 J กับน้ำแข็งที่ 0°C จะละลายได้กี่ kg?", answer: "1 kg", points: 300 }, { question: "ความร้อนที่ใช้หลอมน้ำแข็ง 1 kg ทำให้น้ำ 1 kg ร้อนขึ้นกี่องศา?", answer: "≈ 79.5°C", points: 400 }], [{ question: "ทำให้น้ำ 1 kg ที่ 100°C กลายเป็นไอทั้งหมด ใช้ความร้อนเท่าใด? (L = 2,260,000 J/kg)", answer: "Q = 2,260,000 J", points: 100 }, { question: "ทำให้น้ำ 0.2 kg ที่ 100°C กลายเป็นไอหมด ใช้ความร้อนเท่าใด?", answer: "Q = 452,000 J", points: 200 }, { question: "ไอน้ำ 0.1 kg ที่ 100°C ควบแน่นเป็นน้ำหมด จะคายความร้อนเท่าใด?", answer: "Q = 226,000 J", points: 300 }, { question: "ความร้อนจากการกลายเป็นไอของน้ำ 1 kg ทำให้น้ำ 100 kg ร้อนขึ้นกี่องศา?", answer: "≈ 5.38°C", points: 400 }]] };
-        const gameData3 = { categories: ["4 แถบสี (ค่าต่ำ)", "4 แถบสี (ค่าสูง)", "5 แถบสี (ค่าต่ำ)", "5 แถบสี (ค่าสูง)"], questions: [[{ question: "น้ำตาล, ดำ, แดง, ทอง", answer: "1kΩ ±5%", points: 100 }, { question: "แดง, แดง, น้ำตาล, ทอง", answer: "220Ω ±5%", points: 200 }, { question: "เหลือง, ม่วง, ดำ, เงิน", answer: "47Ω ±10%", points: 300 }, { question: "ส้ม, ส้ม, แดง, ทอง", answer: "3.3kΩ ±5%", points: 400 }], [{ question: "น้ำเงิน, เทา, เหลือง, ทอง", answer: "680kΩ ±5%", points: 100 }, { question: "เขียว, น้ำเงิน, ส้ม, เงิน", answer: "56kΩ ±10%", points: 200 }, { question: "ขาว, ม่วง, เหลือง, ทอง", answer: "9.7MΩ ±5%", points: 300 }, { question: "เทา, แดง, เขียว, เงิน", answer: "8.2MΩ ±10%", points: 400 }], [{ question: "น้ำตาล, ดำ, ดำ, น้ำตาล, น้ำตาล", answer: "1kΩ ±1%", points: 100 }, { question: "แดง, ม่วง, ดำ, ดำ, แดง", answer: "270Ω ±2%", points: 200 }, { question: "ส้ม, ขาว, ดำ, ทอง, เขียว", answer: "39Ω ±0.5%", points: 300 }, { question: "เหลือง, น้ำตาล, เขียว, แดง, ม่วง", answer: "41.5kΩ ±0.1%", points: 400 }], [{ question: "เขียว, ดำ, ส้ม, แดง, น้ำตาล", answer: "503kΩ ±1%", points: 100 }, { question: "น้ำเงิน, เขียว, เหลือง, ส้ม, แดง", answer: "654kΩ ±2%", points: 200 }, { question: "ม่วง, แดง, น้ำเงิน, ส้ม, น้ำเงิน", answer: "7.26MΩ ±0.25%", points: 300 }, { question: "ขาว, ดำ, ดำ, เหลือง, เขียว", answer: "9MΩ ±0.5%", points: 400 }]] };
+        // --- GAME STATE ---
+        let scores = { 1: 0, 2: 0, 3: 0 };
+        let timerInterval;
+        let timeLeft = 300; // 5 minutes
+        let isRunning = false;
         
-        let gameData4; // Will be generated on initialization
-
-        // --- GAME DATA 4: Mixed Questions Function ---
-        function createMixedQuestionsGameData() {
-            const heatElectricQuestions = [ { question: "เครื่องทำน้ำร้อน 1000W ใช้ต้มน้้ำ 1kg นาน 42 วินาที อุณหภูมิจะสูงขึ้นกี่องศา? (c=4200)", answer: "10 °C", points: 200 }, { question: "กาต้มน้ำ 2100W ใช้ต้มน้้ำ 1kg ให้ร้อนขึ้น 30°C จะใช้เวลากี่วินาที? (c=4200)", answer: "60 วินาที", points: 300 }, { question: "เตาไฟฟ้า 700W ให้ความร้อนกับน้ำ 2kg นาน 1 นาที อุณหภูมิจะสูงขึ้นกี่องศา? (c=4200)", answer: "5 °C", points: 400 }, { question: "ให้ความร้อนน้ำ 0.5kg นาน 21 วินาที จนร้อนขึ้น 20°C ต้องใช้กำลังไฟฟ้าเท่าใด? (c=4200)", answer: "2000 W", points: 300 }, { question: "เครื่องทำน้ำอุ่น 2100W ให้ความร้อนกับน้ำ 5kg นาน 100 วินาที อุณหภูมิจะสูงขึ้นกี่องศา? (c=4200)", answer: "10 °C", points: 400 }, ];
-            const tempConvertQuestions = [ { question: "แปลงอุณหภูมิ 10°C เป็น ฟาเรนไฮต์", answer: "50 °F", points: 100 }, { question: "แปลงอุณหภูมิ 77°F เป็น เซลเซียส", answer: "25 °C", points: 100 }, { question: "แปลงอุณหภูมิ 50°C เป็น โรเมอร์", answer: "40 °Ré", points: 200 }, { question: "แปลงอุณหภูมิ 32°F เป็น เคลวิน (ใช้ค่าประมาณ)", answer: "273 K", points: 200 }, { question: "แปลงอุณหภูมิ -40°F เป็น เซลเซียส", answer: "-40 °C", points: 300 }, ];
-            const resistorQuestions = [ { question: "อ่านค่าตัวต้านทาน: น้ำตาล, ดำ, ส้ม, ทอง", answer: "10kΩ ±5%", points: 100 }, { question: "อ่านค่าตัวต้านทาน: แดง, ม่วง, แดง, ทอง", answer: "2.7kΩ ±5%", points: 200 }, { question: "อ่านค่าตัวต้านทาน: เหลือง, ม่วง, น้ำตาล, ทอง", answer: "470Ω ±5%", points: 200 }, { question: "อ่านค่าตัวต้านทาน: เขียว, น้ำเงิน, ดำ, ทอง", answer: "56Ω ±5%", points: 300 }, { question: "อ่านค่าตัวต้านทาน: ส้ม, ขาว, เหลือง, เงิน", answer: "390kΩ ±10%", points: 400 }, ];
-            let allQuestions = [...heatElectricQuestions, ...heatElectricQuestions, ...tempConvertQuestions, ...resistorQuestions].sort(() => 0.5 - Math.random());
-            let structuredQuestions = [];
-            for (let i = 0; i < 5; i++) { structuredQuestions.push(allQuestions.slice(i * 4, (i + 1) * 4)); }
-            return { categories: ["ชุดที่ 1", "ชุดที่ 2", "ชุดที่ 3", "ชุดที่ 4", "ชุดที่ 5"], questions: structuredQuestions };
+        // --- SETUP ---
+        function startGame() {
+            document.getElementById('team1Name').textContent = document.getElementById('team1NameInput').value || "Team A";
+            document.getElementById('team2Name').textContent = document.getElementById('team2NameInput').value || "Team B";
+            document.getElementById('team3Name').textContent = document.getElementById('team3NameInput').value || "Team C";
+            
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameArea').classList.remove('hidden');
         }
 
-        // --- REWARDS for Page 4 ---
-        const rewards = [
-            { type: 'text', template: "สุดยอด! ได้รับการ์ดพิเศษ {n} ใบ", range: [1, 5] },
-            { type: 'text', template: "จอมโจร! ขโมยการ์ดจากทีมอื่นได้ทีมละ {n} ใบ", range: [1, 5] },
-            { type: 'points', template: "โบนัสแตก! ได้คะแนนพิเศษ {n} คะแนน", range: [100000, 5000000] },
-            { type: 'text', template: "เพื่อนช่วยเพื่อน! ให้ทีมอื่นเลือกการ์ดให้คุณ {n} ใบ", range: [1, 5] },
-            { type: 'text', template: "ดึงตัว! สมาชิกจากทีมอื่น {n} คนย้ายมาอยู่ทีมคุณ", range: [1, 2] }
+        // --- SCORE SYSTEM ---
+        function adjustScore(team, delta) {
+            scores[team] += delta;
+            if (scores[team] < 0) scores[team] = 0;
+            document.getElementById(`score${team}`).textContent = scores[team];
+        }
+
+        function resetScores() {
+            if(confirm("ต้องการรีเซ็ตคะแนนทั้งหมดหรือไม่?")) {
+                scores = { 1: 0, 2: 0, 3: 0 };
+                [1,2,3].forEach(t => document.getElementById(`score${t}`).textContent = 0);
+            }
+        }
+
+        // --- TIMER SYSTEM ---
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+            
+            if (timeLeft <= 30) {
+                document.getElementById('timerDisplay').classList.add('text-red-500');
+            } else {
+                document.getElementById('timerDisplay').classList.remove('text-red-500');
+            }
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timerBtn');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.textContent = "Resume";
+                btn.classList.replace('bg-yellow-600', 'bg-green-600');
+                btn.classList.replace('hover:bg-yellow-500', 'hover:bg-green-500');
+                isRunning = false;
+            } else {
+                if (timeLeft <= 0) timeLeft = 300;
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        alert("หมดเวลา! (Time's Up)");
+                    }
+                }, 1000);
+                btn.textContent = "Pause";
+                btn.classList.replace('bg-green-600', 'bg-yellow-600');
+                btn.classList.replace('hover:bg-green-500', 'hover:bg-yellow-500');
+                isRunning = true;
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = 300;
+            updateTimerDisplay();
+            const btn = document.getElementById('timerBtn');
+            btn.textContent = "Start";
+            btn.classList.replace('bg-yellow-600', 'bg-green-600');
+        }
+
+        // --- QUESTION GENERATOR ENGINE ---
+        
+        const resistorColors = [
+            { name: 'Black', val: 0, code: 'bg-r-black', text: 'white' },
+            { name: 'Brown', val: 1, code: 'bg-r-brown', text: 'white' },
+            { name: 'Red', val: 2, code: 'bg-r-red', text: 'white' },
+            { name: 'Orange', val: 3, code: 'bg-r-orange', text: 'black' },
+            { name: 'Yellow', val: 4, code: 'bg-r-yellow', text: 'black' },
+            { name: 'Green', val: 5, code: 'bg-r-green', text: 'white' },
+            { name: 'Blue', val: 6, code: 'bg-r-blue', text: 'white' },
+            { name: 'Violet', val: 7, code: 'bg-r-violet', text: 'white' },
+            { name: 'Grey', val: 8, code: 'bg-r-grey', text: 'black' },
+            { name: 'White', val: 9, code: 'bg-r-white', text: 'black' }
         ];
 
-        let scores = [];
-        let askedQuestions1 = [], askedQuestions2 = [], askedQuestions3 = [], askedQuestions4 = [];
-        let gameInitialized = { 1: false, 2: false, 3: false, 4: false };
-        let resetAction = null;
+        const tolerances = [
+            { name: 'Gold', val: 5, code: 'bg-r-gold' },
+            { name: 'Silver', val: 10, code: 'bg-r-silver' }
+        ];
 
-        const gameContainers = { 1: document.getElementById('game-container-1'), 2: document.getElementById('game-container-2'), 3: document.getElementById('game-container-3'), 4: document.getElementById('game-container-4') };
-        const pageBtns = { 1: document.getElementById('page1-btn'), 2: document.getElementById('page2-btn'), 3: document.getElementById('page3-btn'), 4: document.getElementById('page4-btn') };
-        
-        const questionModal = document.getElementById('question-modal');
-        const rewardModal = document.getElementById('reward-modal');
-        const resetModal = document.getElementById('reset-modal');
-        const confirmResetBtn = document.getElementById('confirm-reset-btn');
-        const cancelResetBtn = document.getElementById('cancel-reset-btn');
+        // Helper: Random Integer
+        const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-        function resetAll() {
-            scores = new Array(teams.length).fill(0);
-            Object.keys(gameInitialized).forEach(pageNum => initializeBoard(pageNum));
-            updateAllScoreboards();
-        }
-
-        function initializeBoard(gameNum) {
-            gameNum = Number(gameNum);
-            if (gameNum === 1) { askedQuestions1 = gameData1.questions.map(cat => cat.map(() => false)); renderGameBoard(gameData1, askedQuestions1, 'game-board-1', 1); } 
-            else if (gameNum === 2) { askedQuestions2 = gameData2.questions.map(cat => cat.map(() => false)); renderGameBoard(gameData2, askedQuestions2, 'game-board-2', 2); } 
-            else if (gameNum === 3) { askedQuestions3 = gameData3.questions.map(cat => cat.map(() => false)); renderGameBoard(gameData3, askedQuestions3, 'game-board-3', 3); } 
-            else if (gameNum === 4) { 
-                gameData4 = createMixedQuestionsGameData(); // Re-shuffle questions
-                askedQuestions4 = gameData4.questions.map(cat => cat.map(() => false)); 
-                renderGameBoard(gameData4, askedQuestions4, 'game-board-4', 4); 
-            }
-            renderScoreboard(teams, scores, `scoreboard-${gameNum}`);
-            gameInitialized[gameNum] = true;
-        }
-
-        function updateAllScoreboards() {
-            Object.keys(gameInitialized).forEach(pageNum => {
-                 if(gameInitialized[pageNum]) { renderScoreboard(teams, scores, `scoreboard-${pageNum}`); }
-            });
-        }
-
-        function renderScoreboard(teams, scores, elementId) {
-            const scoreboard = document.getElementById(elementId);
-            if(!scoreboard) return;
-            scoreboard.innerHTML = '';
-            teams.forEach((team, index) => {
-                const teamCard = document.createElement('div');
-                teamCard.className = 'team-score-card p-4 rounded-lg text-center';
-                teamCard.innerHTML = `<h2 class="text-xl font-bold">${team}</h2><p class="text-3xl font-bold">${scores[index].toLocaleString('th-TH')}</p>`;
-                scoreboard.appendChild(teamCard);
-            });
-        }
-
-        function renderGameBoard(gameData, askedState, elementId, gameNum) {
-            const gameBoard = document.getElementById(elementId);
-            gameBoard.innerHTML = '';
-            gameData.categories.forEach(category => {
-                const categoryHeader = document.createElement('div');
-                categoryHeader.className = 'text-2xl font-bold text-center py-4';
-                categoryHeader.textContent = category;
-                gameBoard.appendChild(categoryHeader);
-            });
-            const numQuestions = gameData.questions[0].length;
-            for (let i = 0; i < numQuestions; i++) {
-                for (let j = 0; j < gameData.categories.length; j++) {
-                    const questionData = gameData.questions[j][i];
-                    const card = document.createElement('div');
-                    card.className = 'card text-3xl font-bold h-24 flex items-center justify-center cursor-pointer';
-                    if (askedState[j][i]) card.classList.add('asked');
-                    card.textContent = questionData.points;
-                    card.dataset.categoryIndex = j;
-                    card.dataset.questionIndex = i;
-                    card.addEventListener('click', (event) => handleCardClick(event, gameNum));
-                    gameBoard.appendChild(card);
-                }
-            }
-        }
-
-        function handleCardClick(event, gameNum) {
-            const card = event.currentTarget;
-            if (card.classList.contains('asked')) return;
-
-            const catIndex = card.dataset.categoryIndex;
-            const qIndex = card.dataset.questionIndex;
-
-            let gameData, askedQuestions;
-            if (gameNum === 1) { [gameData, askedQuestions] = [gameData1, askedQuestions1]; }
-            else if (gameNum === 2) { [gameData, askedQuestions] = [gameData2, askedQuestions2]; }
-            else if (gameNum === 3) { [gameData, askedQuestions] = [gameData3, askedQuestions3]; }
-            else { [gameData, askedQuestions] = [gameData4, askedQuestions4]; }
-
-            askedQuestions[catIndex][qIndex] = true;
-            card.classList.add('asked');
+        // Generators per Topic
+        const generators = {
+            work_energy: () => {
+                const types = [
+                    () => {
+                        const F = rand(10, 100);
+                        const s = rand(2, 20);
+                        return {
+                            q: `ออกแรง ${F} นิวตัน ผลักวัตถุไปตามพื้นราบได้ระยะทาง ${s} เมตร จงหางานที่ทำ (Work)`,
+                            a: `${F * s} จูล (J)`,
+                            exp: `สูตร W = F × s = ${F} × ${s}`
+                        };
+                    },
+                    () => {
+                        const m = rand(2, 20);
+                        const v = rand(2, 10) * 2; // keep numbers nice
+                        return {
+                            q: `วัตถุมวล ${m} kg กำลังเคลื่อนที่ด้วยความเร็ว ${v} m/s จงหาพลังงานจลน์ (Ek)`,
+                            a: `${0.5 * m * v * v} จูล (J)`,
+                            exp: `สูตร Ek = ½mv² = ½ × ${m} × ${v}²`
+                        };
+                    },
+                    () => {
+                        const m = rand(1, 10);
+                        const h = rand(5, 50);
+                        return {
+                            q: `ก้อนหินมวล ${m} kg อยู่บนหน้าผาสูง ${h} เมตร จากพื้นดิน จงหาพลังงานศักย์โน้มถ่วง (Ep) (ให้ g=10)`,
+                            a: `${m * 10 * h} จูล (J)`,
+                            exp: `สูตร Ep = mgh = ${m} × 10 × ${h}`
+                        };
+                    }
+                ];
+                return pick(types)();
+            },
             
-            const questionData = gameData.questions[catIndex][qIndex];
-            showQuestionModal(questionData, gameData.categories[catIndex], gameNum);
-        }
+            cons_energy_no_loss: () => {
+                const m = rand(1, 5);
+                const h = rand(5, 20);
+                const g = 10;
+                // mgh = 1/2mv^2 => v = sqrt(2gh)
+                return {
+                    q: `วัตถุมวล ${m} kg ตกจากตึกสูง ${h} เมตร ลงสู่พื้นดินโดยไม่มีแรงต้านอากาศ ความเร็วขณะกระทบพื้นเป็นเท่าใด? (g=10)`,
+                    a: `${Math.sqrt(2*g*h).toFixed(2)} m/s`,
+                    exp: `กฎอนุรักษ์พลังงาน: Ep (บน) = Ek (ล่าง) <br> mgh = ½mv² <br> v = √(2gh) = √(2×10×${h})`
+                };
+            },
 
-        function showQuestionModal(questionData, category, gameNum) {
-            document.getElementById('modal-category').textContent = category;
-            document.getElementById('modal-points').textContent = `${questionData.points} คะแนน`;
-            document.getElementById('modal-question').textContent = questionData.question;
-            document.getElementById('modal-answer').textContent = questionData.answer;
+            cons_energy_loss: () => {
+                const m = rand(2, 10);
+                const h = 10;
+                const f = rand(1, 5);
+                const s = 10; // distance down
+                const w_f = f * s;
+                const ep = m * 10 * h;
+                const ek = ep - w_f;
+                return {
+                    q: `วัตถุมวล ${m} kg ไถลลงจากพื้นเอียงสูง ${h} เมตร มีแรงเสียดทานเฉลี่ย ${f} N ตลอดความยาวพื้นเอียง ${s} เมตร พลังงานจลน์ที่ปลายพื้นเอียงเป็นเท่าใด?`,
+                    a: `${ek} จูล (J)`,
+                    exp: `E_start - W_loss = E_final <br> mgh - (f×s) = Ek <br> (${m}×10×${h}) - (${f}×${s}) = ${ep} - ${w_f}`
+                };
+            },
 
-            const awardButtonsContainer = document.getElementById('award-buttons');
-            awardButtonsContainer.innerHTML = '';
-            teams.forEach((team, index) => {
-                const button = document.createElement('button');
-                button.className = 'btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full';
-                button.textContent = `ให้ ${team}`;
-                if (gameNum === 4) {
-                    button.onclick = () => awardPointsAndShowReward(index, questionData.points);
+            resistor_code: () => {
+                const is5Band = Math.random() > 0.5;
+                let c1 = pick(resistorColors.slice(1)); // First digit can't be black
+                let c2 = pick(resistorColors);
+                let c3 = is5Band ? pick(resistorColors) : null;
+                let mul = pick(resistorColors.slice(0, 7)); // Multiplier up to Mega
+                let tol = pick(tolerances);
+
+                let val = 0;
+                let bandsHtml = '';
+
+                if (is5Band) {
+                    val = parseInt(`${c1.val}${c2.val}${c3.val}`) * Math.pow(10, mul.val);
+                    bandsHtml = `
+                        <div class="resistor-band ${c1.code}"></div>
+                        <div class="resistor-band ${c2.code}"></div>
+                        <div class="resistor-band ${c3.code}"></div>
+                        <div class="resistor-band ${mul.code}"></div>
+                        <div class="resistor-band ${tol.code}" style="margin-left: 10px;"></div>
+                    `;
                 } else {
-                    button.onclick = () => awardPoints(index, questionData.points);
+                    val = parseInt(`${c1.val}${c2.val}`) * Math.pow(10, mul.val);
+                    bandsHtml = `
+                        <div class="resistor-band ${c1.code}"></div>
+                        <div class="resistor-band ${c2.code}"></div>
+                        <div class="resistor-band ${mul.code}"></div>
+                        <div class="resistor-band ${tol.code}" style="margin-left: 10px;"></div>
+                    `;
                 }
-                awardButtonsContainer.appendChild(button);
-            });
-            const noScoreButton = document.createElement('button');
-            noScoreButton.className = 'btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-full';
-            noScoreButton.textContent = 'ไม่ให้คะแนน';
-            noScoreButton.onclick = () => { questionModal.classList.add('hidden'); };
-            awardButtonsContainer.appendChild(noScoreButton);
 
-            document.getElementById('modal-answer-container').classList.add('hidden');
-            document.getElementById('reveal-answer-btn').classList.remove('hidden');
-            questionModal.classList.remove('hidden');
-        }
+                // Format value nicely (k, M)
+                let displayVal = val;
+                let unit = "Ω";
+                if (val >= 1000000) { displayVal = val/1000000; unit = "MΩ"; }
+                else if (val >= 1000) { displayVal = val/1000; unit = "kΩ"; }
 
-        function awardPoints(teamIndex, points) {
-            scores[teamIndex] += points;
-            updateAllScoreboards();
-            questionModal.classList.add('hidden');
-        }
+                return {
+                    q: `จงอ่านค่าความต้านทานจากแถบสีต่อไปนี้ (${is5Band ? '5' : '4'} แถบ)`,
+                    visual: bandsHtml,
+                    a: `${displayVal} ${unit} ±${tol.val}%`,
+                    exp: `แถบสี: ${c1.name}, ${c2.name} ${is5Band ? ', '+c3.name : ''}, x10^${mul.val}, Tol ${tol.val}%`
+                };
+            },
 
-        function awardPointsAndShowReward(teamIndex, points) {
-            scores[teamIndex] += points;
-            updateAllScoreboards();
-            questionModal.classList.add('hidden');
-            showRewardModal();
-        }
-        
-        function randomInRange(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-        
-        function showRewardModal() {
-            let chosenReward;
-            const randomNumber = Math.random() * 100; // สุ่มตัวเลข 0-99.99
+            circuit: () => {
+                const type = Math.random() > 0.5 ? 'Series' : 'Parallel';
+                const r1 = rand(1, 10) * 10;
+                const r2 = rand(1, 10) * 10;
 
-            // 5% chance for team swap
-            if (randomNumber < 5) { 
-                chosenReward = rewards.find(r => r.template.includes("ดึงตัว"));
-            } else { 
-            // 95% chance for other rewards
-                const otherRewards = rewards.filter(r => !r.template.includes("ดึงตัว"));
-                chosenReward = otherRewards[Math.floor(Math.random() * otherRewards.length)];
-            }
-            
-            const n = randomInRange(chosenReward.range[0], chosenReward.range[1]);
-            const rewardText = chosenReward.template.replace('{n}', n.toLocaleString('th-TH'));
-
-            document.getElementById('reward-text').textContent = rewardText;
-
-            const rewardButtonsContainer = document.getElementById('reward-buttons');
-            rewardButtonsContainer.innerHTML = '';
-            teams.forEach((team, index) => {
-                const button = document.createElement('button');
-                button.className = 'btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full';
-                button.textContent = `ให้ ${team}`;
-                button.onclick = () => assignReward(index, chosenReward, n);
-                rewardButtonsContainer.appendChild(button);
-            });
-            
-            rewardModal.classList.remove('hidden');
-        }
-
-        function assignReward(teamIndex, rewardInfo, value) {
-            if (rewardInfo.type === 'points') {
-                scores[teamIndex] += value;
-                updateAllScoreboards();
-            }
-            rewardModal.classList.add('hidden');
-        }
-
-        document.getElementById('reveal-answer-btn').addEventListener('click', () => {
-            document.getElementById('modal-answer-container').classList.remove('hidden');
-            document.getElementById('reveal-answer-btn').classList.add('hidden');
-        });
-
-        document.getElementById('close-modal-btn').addEventListener('click', () => questionModal.classList.add('hidden'));
-        document.getElementById('close-reward-modal-btn').addEventListener('click', () => rewardModal.classList.add('hidden'));
-
-        document.querySelectorAll('.reset-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                resetAction = e.currentTarget.dataset.resetType;
-                const modalText = document.getElementById('reset-modal-text');
-                if (resetAction === 'full') {
-                    modalText.textContent = 'คุณต้องการรีเซ็ตคะแนนและเกมทั้งหมดใช่หรือไม่?';
+                if (type === 'Series') {
+                    return {
+                        q: `ตัวต้านทาน R1 = ${r1}Ω และ R2 = ${r2}Ω ต่อกันแบบ **อนุกรม** ความต้านทานรวมเป็นเท่าใด?`,
+                        a: `${r1 + r2} Ω`,
+                        exp: `อนุกรม: R_total = R1 + R2`
+                    };
                 } else {
-                    modalText.textContent = `คุณต้องการล้างกระดานหน้านี้ใหม่ทั้งหมดใช่หรือไม่? (คะแนนจะไม่เปลี่ยน)`;
+                    // Make parallel nice numbers if possible, or just exact formula
+                    // Let's use easy numbers: if R1=R2, R/2. Or R1=30, R2=60 -> 20.
+                    // For random, keep it simple formula display
+                    const num = r1 * r2;
+                    const den = r1 + r2;
+                    const ans = (num/den).toFixed(2);
+                    return {
+                        q: `ตัวต้านทาน R1 = ${r1}Ω และ R2 = ${r2}Ω ต่อกันแบบ **ขนาน** ความต้านทานรวมเป็นเท่าใด?`,
+                        a: `${ans} Ω`,
+                        exp: `ขนาน: (R1 × R2) / (R1 + R2) = ${num} / ${den}`
+                    };
                 }
-                resetModal.classList.remove('hidden');
-            });
-        });
+            },
 
-        confirmResetBtn.addEventListener('click', () => {
-            if (resetAction === 'full') {
-                resetAll();
-            } else if (resetAction.startsWith('page')) {
-                initializeBoard(resetAction.replace('page', ''));
+            ray_optics: () => {
+                const scenarios = [
+                    { q: "วัตถุวางอยู่ระหว่างจุดโฟกัส (F) กับเลนส์นูน", a: "ภาพเสมือน, หัวตั้ง, ขนาดขยาย", exp: "เลนส์นูน ระยะวัตถุ < f จะได้ภาพเสมือนขนาดใหญ่ (เช่น แว่นขยาย)" },
+                    { q: "วัตถุวางอยู่ที่จุดศูนย์กลางความโค้ง (C) หน้ากระจกเว้า", a: "ภาพจริง, หัวกลับ, ขนาดเท่าวัตถุ", exp: "กระจกเว้า วางที่ C ภาพเกิดที่ C ขนาดเท่าเดิม" },
+                    { q: "วัตถุวางหน้ากระจกนูน (ระยะใดก็ได้)", a: "ภาพเสมือน, หัวตั้ง, ขนาดเล็กกว่าวัตถุ", exp: "กระจกนูนและเลนส์เว้า ให้ภาพเสมือนหัวตั้งขนาดเล็กเสมอ" },
+                    { q: "วัตถุวางไกลมาก (ระยะอนันต์) หน้าเลนส์นูน", a: "ภาพจริง, เป็นจุด, อยู่ที่จุดโฟกัส", exp: "แสงขนานรวมกันที่จุดโฟกัสหลังเลนส์" },
+                    { q: "วัตถุวางระหว่าง F และ 2F หน้าเลนส์นูน", a: "ภาพจริง, หัวกลับ, ขนาดขยาย", exp: "เกิดภาพหลังเลนส์ ไกลกว่า 2F" }
+                ];
+                return pick(scenarios);
+            },
+
+            temp_conv: () => {
+                const c = rand(20, 100);
+                const askF = Math.random() > 0.5;
+                
+                if (askF) {
+                    const f = (c * 9/5) + 32;
+                    return {
+                        q: `เปลี่ยนอุณหภูมิ ${c}°C เป็นองศาฟาเรนไฮต์ (°F)`,
+                        a: `${f.toFixed(1)} °F`,
+                        exp: `F = (C × 9/5) + 32`
+                    };
+                } else {
+                    const k = c + 273;
+                    return {
+                        q: `เปลี่ยนอุณหภูมิ ${c}°C เป็นเคลวิน (K)`,
+                        a: `${k} K`,
+                        exp: `K = C + 273`
+                    };
+                }
+            },
+
+            elec_heat: () => {
+                // Pt = mc(T2-T1)
+                // Realistic Kettle Scenario
+                
+                // Mass: 0.5 - 1.5 kg (Step 0.1)
+                const m_kg = rand(5, 15) / 10; 
+                
+                // Power: 1500 - 2500 W (Typical electric kettle)
+                const P = rand(15, 25) * 100; 
+                
+                // Limit time so water doesn't boil over (assuming start at ~20°C, max rise ~80°C)
+                // t_max = (m * c * 80) / P
+                const c = 4200;
+                const max_time = Math.floor((m_kg * c * 80) / P);
+                
+                // Random time between 20s and max_time, step 5s or 10s
+                // Ensure min time is at least 20s
+                const safe_max_step = Math.max(2, Math.floor(max_time/10));
+                const t_sec = rand(2, safe_max_step) * 10;
+                
+                // Q = Pt
+                const Q = P * t_sec;
+                // dt = Q / mc
+                const dT = Q / (m_kg * c);
+                
+                return {
+                    q: `กาต้มน้ำไฟฟ้ากำลัง ${P} วัตต์ ต้มน้ำมวล ${m_kg} kg เป็นเวลา ${t_sec} วินาที อุณหภูมิน้ำจะเพิ่มขึ้นกี่องศาเซลเซียส? <br><span class="text-sm text-gray-500">(กำหนดให้ c น้ำ = 4200 J/kg·K และไม่มีการสูญเสียความร้อน)</span>`,
+                    a: `${dT.toFixed(1)} °C`,
+                    exp: `จากสูตร Pt = mcΔT <br> แทนค่า: ${P}×${t_sec} = ${m_kg}×4200×ΔT <br> พลังงานไฟฟ้าที่ใช้ = ${Q.toLocaleString()} J <br> ΔT = ${Q} / ${(m_kg*c)} = ${dT.toFixed(2)} °C`
+                };
             }
-            resetModal.classList.add('hidden');
-        });
+        };
 
-        cancelResetBtn.addEventListener('click', () => resetModal.classList.add('hidden'));
-        
-        function switchPage(pageNum) {
-            Object.values(gameContainers).forEach(c => c.classList.add('hidden'));
-            gameContainers[pageNum].classList.remove('hidden');
+        // --- MAIN LOGIC ---
 
-            Object.values(pageBtns).forEach(b => b.classList.remove('nav-btn-active', 'bg-blue-600', 'bg-purple-600', 'bg-green-600', 'bg-orange-600'));
-            Object.values(pageBtns).forEach(b => b.classList.add('bg-gray-500'));
+        function generateQuestion() {
+            // UI Reset
+            document.getElementById('answerSection').classList.add('hidden');
+            document.getElementById('showAnsBtn').classList.remove('hidden');
+            document.getElementById('visualContent').innerHTML = '';
             
-            let activeColor;
-            if (pageNum == 1) activeColor = 'bg-blue-600';
-            else if (pageNum == 2) activeColor = 'bg-purple-600';
-            else if (pageNum == 3) activeColor = 'bg-green-600';
-            else if (pageNum == 4) activeColor = 'bg-orange-600';
-
-            pageBtns[pageNum].classList.add('nav-btn-active', activeColor);
-            pageBtns[pageNum].classList.remove('bg-gray-500');
-
-            if (!gameInitialized[pageNum]) {
-                initializeBoard(pageNum);
+            // Topic Selection
+            let topic = document.getElementById('topicSelect').value;
+            const keys = Object.keys(generators);
+            
+            if (topic === 'all') {
+                topic = pick(keys);
             }
+
+            // Map Topic ID to Thai Name
+            const names = {
+                work_energy: "งานและพลังงาน",
+                cons_energy_no_loss: "อนุรักษ์พลังงาน (ไม่สูญเสีย)",
+                cons_energy_loss: "อนุรักษ์พลังงาน (สูญเสีย)",
+                resistor_code: "แถบสีตัวต้านทาน",
+                circuit: "วงจรไฟฟ้า",
+                ray_optics: "ทางเดินแสง",
+                temp_conv: "เปลี่ยนหน่วยอุณหภูมิ",
+                elec_heat: "ไฟฟ้าและความร้อน"
+            };
+            document.getElementById('categoryBadge').textContent = names[topic];
+
+            // Generate
+            const data = generators[topic]();
+            
+            document.getElementById('questionText').innerHTML = data.q;
+            if(data.visual) {
+                document.getElementById('visualContent').innerHTML = data.visual;
+            }
+            
+            // Store Answer
+            document.getElementById('answerText').innerHTML = data.a;
+            document.getElementById('explanationText').innerHTML = data.exp;
+
+            // Auto Reset Timer
+            resetTimer();
         }
-        
-        Object.keys(pageBtns).forEach(pageNum => {
-            pageBtns[pageNum].addEventListener('click', () => switchPage(pageNum));
-        });
 
-        // Initial load
-        resetAll();
-        switchPage(1);
+        function showAnswer() {
+            document.getElementById('answerSection').classList.remove('hidden');
+            document.getElementById('showAnsBtn').classList.add('hidden');
+        }
 
+        // Init
+        // Don't auto generate on load, wait for user.
     </script>
 </body>
 </html>
-
-
