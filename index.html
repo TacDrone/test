@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Temperature Battle Royale - Special Edition (Fixed)</title>
+    <title>Temperature Battle Royale - Special Edition (Fixed Layout)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,29 +16,35 @@
             color: white;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             margin: 0;
+            padding: 20px 0; /* เพิ่ม padding เพื่อไม่ให้ชิดขอบบนล่าง */
             overflow-x: hidden;
+            overflow-y: auto; /* อนุญาตให้ Scroll ได้ */
         }
 
         .game-viewport {
-            width: 100%;
+            width: 95%;
             max-width: 1400px;
             margin: auto;
             position: relative;
             background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            /* ลบ overflow: hidden ออกเพื่อให้เห็นปุ่มที่อาจจะล้นออกไปบ้าง */
+            border-radius: 20px;
         }
 
         @media (min-width: 1024px) {
             .game-viewport {
+                /* รักษาสัดส่วน 16:9 แต่ถ้าเนื้อหายาวเกินจะขยายตามเนื้อหาหรือ scroll ภายใน */
+                min-height: calc(1400px * 9 / 16);
                 aspect-ratio: 16 / 9;
                 border: 2px solid rgba(255, 255, 255, 0.1);
-                border-radius: 20px;
                 box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+                overflow-y: auto; /* ให้ scroll ภายในได้ถ้าจอเล็กเกินสัดส่วน */
             }
         }
 
@@ -125,8 +131,8 @@
         }
 
         @media (max-width: 1023px) {
-            body { overflow-y: auto; align-items: flex-start; }
-            .game-viewport { min-height: 100vh; aspect-ratio: auto; border-radius: 0; }
+            body { padding: 10px; align-items: stretch; justify-content: flex-start; }
+            .game-viewport { width: 100%; min-height: 100vh; aspect-ratio: auto; border-radius: 0; }
         }
     </style>
 </head>
@@ -207,13 +213,13 @@
                     <div id="input-mode-container" class="hidden w-full max-w-md mx-auto flex flex-col items-center gap-6 flex-grow justify-center">
                         <input type="number" step="0.1" id="special-answer-input" placeholder="พิมพ์คำตอบที่นี่..." class="w-full bg-white/10 border-2 border-yellow-500/50 rounded-2xl p-6 text-4xl font-black text-center outline-none focus:border-yellow-400 focus:bg-white/20 transition-all shadow-[0_0_20px_rgba(234,179,8,0.2)] text-white">
                         <button onclick="submitInputAnswer()" class="bg-yellow-500 hover:bg-yellow-400 text-black px-12 py-4 rounded-xl font-black text-2xl transition-all shadow-xl active:scale-95">ส่งคำตอบ (ENTER)</button>
-                        <p class="text-yellow-500/70 font-bold animate-bounce uppercase">★ Special Question: +200 Points ★</p>
+                        <p class="text-yellow-500/70 font-bold animate-bounce uppercase mt-4">★ Special Question: +200 Points ★</p>
                     </div>
                 </div>
             </div>
 
             <!-- Footer -->
-            <div class="mt-6 flex justify-between items-center h-16">
+            <div class="mt-6 flex justify-between items-center h-16 shrink-0">
                 <button id="end-game-btn" onclick="openEndGameConfirm()" class="bg-red-600/20 hover:bg-red-600 border border-red-600/50 text-red-500 hover:text-white px-6 py-2 rounded-xl font-bold text-sm transition-all uppercase tracking-widest">จบการแข่งขัน</button>
                 <button id="next-btn" onclick="prepareNextTurn()" class="hidden bg-white text-black h-full px-12 rounded-xl font-black text-lg hover:bg-yellow-400 transition-all shadow-xl uppercase italic tracking-tighter">NEXT TURN →</button>
             </div>
@@ -260,7 +266,6 @@
         let timeLeft = 90;
         let isAnswered = false;
 
-        // แยกรายการบทลงโทษตามจำนวนครั้ง
         const punishments10 = ["ดันพื้น 10 ครั้ง", "ลุกนั่ง 10 ครั้ง", "วิ่งอยู่กับที่ 10 วินาที"];
         const punishments20 = ["ดันพื้น 20 ครั้ง", "ลุกนั่ง 20 ครั้ง", "กระโดดตบ 20 ครั้ง"];
 
