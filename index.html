@@ -3,585 +3,557 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เกมตอบคำถามฟิสิกส์ - Physics Battle</title>
+    <title>Temperature Battle Royale - Special Edition (Fixed)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body {
-            font-family: 'Prompt', sans-serif;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            min-height: 100vh;
+            font-family: 'Kanit', sans-serif;
+            background: #020617;
             color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow-x: hidden;
         }
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            color: #333;
-        }
-        .btn-push {
-            transition: all 0.1s;
-        }
-        .btn-push:active {
-            transform: translateY(4px);
-        }
-        .resistor-band {
-            display: inline-block;
-            width: 30px;
-            height: 80px;
-            margin: 0 2px;
-            border: 1px solid #333;
-        }
-        /* Custom Colors for Resistors */
-        .bg-r-black { background-color: black; }
-        .bg-r-brown { background-color: #8B4513; }
-        .bg-r-red { background-color: red; }
-        .bg-r-orange { background-color: orange; }
-        .bg-r-yellow { background-color: yellow; }
-        .bg-r-green { background-color: green; }
-        .bg-r-blue { background-color: blue; }
-        .bg-r-violet { background-color: violet; }
-        .bg-r-grey { background-color: grey; }
-        .bg-r-white { background-color: white; border: 1px solid #ddd;}
-        .bg-r-gold { background: linear-gradient(to bottom, #FFD700, #FDB931); }
-        .bg-r-silver { background: linear-gradient(to bottom, #C0C0C0, #E0E0E0); }
 
-        /* Animation for Special Rule */
-        @keyframes popIn {
-            0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
-            100% { transform: scale(1) rotate(-1deg); opacity: 1; }
+        .game-viewport {
+            width: 100%;
+            max-width: 1400px;
+            margin: auto;
+            position: relative;
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
-        .rule-pop {
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+        @media (min-width: 1024px) {
+            .game-viewport {
+                aspect-ratio: 16 / 9;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+
+        .slot-machine-anim {
+            animation: slotScroll 0.3s ease-in-out infinite;
+        }
+
+        @keyframes slotScroll {
+            0% { transform: translateY(-20px); opacity: 0.3; }
+            50% { transform: translateY(0px); opacity: 1; }
+            100% { transform: translateY(20px); opacity: 0.3; }
+        }
+
+        .turn-announcement {
+            animation: zoomInBounce 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes zoomInBounce {
+            0% { transform: scale(0); opacity: 0; filter: blur(10px); }
+            70% { transform: scale(1.05); opacity: 1; filter: blur(0px); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .active-team-glow {
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+            border-bottom: 6px solid #38bdf8 !important;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .timer-bar {
+            transition: width 1s linear;
+        }
+
+        .btn-option {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-option:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: rgba(56, 189, 248, 0.2);
+        }
+
+        .bonus-input {
+            width: 60px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            text-align: center;
+            outline: none;
+            font-size: 0.75rem;
+        }
+
+        .bonus-input:focus {
+            border-color: #38bdf8;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .score-change-anim {
+            animation: scorePop 0.5s ease-out;
+        }
+
+        @keyframes scorePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .special-mode-border {
+            border: 4px solid #eab308 !important;
+            box-shadow: 0 0 30px rgba(234, 179, 8, 0.3) inset;
+        }
+
+        @media (max-width: 1023px) {
+            body { overflow-y: auto; align-items: flex-start; }
+            .game-viewport { min-height: 100vh; aspect-ratio: auto; border-radius: 0; }
         }
     </style>
 </head>
-<body class="p-4 md:p-8 flex flex-col items-center">
+<body class="p-0 sm:p-4">
 
-    <!-- Setup Screen (Overlay) -->
-    <div id="setupScreen" class="fixed inset-0 bg-gray-900 z-50 flex flex-col items-center justify-center p-4">
-        <h1 class="text-4xl md:text-6xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500">Physics Battle</h1>
-        <div class="bg-white p-8 rounded-xl w-full max-w-lg text-gray-800">
-            <h2 class="text-2xl font-bold mb-4 text-center">ตั้งชื่อทีม</h2>
-            <div class="space-y-4">
-                <input type="text" id="team1NameInput" value="ทีม A" class="w-full p-3 border rounded text-lg focus:ring-2 ring-blue-500" placeholder="ชื่อทีม 1">
-                <input type="text" id="team2NameInput" value="ทีม B" class="w-full p-3 border rounded text-lg focus:ring-2 ring-red-500" placeholder="ชื่อทีม 2">
-                <input type="text" id="team3NameInput" value="ทีม C" class="w-full p-3 border rounded text-lg focus:ring-2 ring-green-500" placeholder="ชื่อทีม 3">
+    <div class="game-viewport">
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="flex-grow flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden">
+            <div class="relative z-10 glass-panel p-8 sm:p-12 max-w-xl w-full text-center">
+                <h1 class="text-4xl sm:text-6xl font-black mb-4 gradient-text tracking-tight uppercase">Temp Battle Pro</h1>
+                <div class="bg-white/5 p-4 rounded-xl mb-6 text-sm text-left">
+                    <p class="text-sky-300">🔵 ข้อปกติ: ถูก +100 | ผิด -50</p>
+                    <p class="text-yellow-400 font-bold">🟡 ข้อพิเศษ (เติมคำ): ถูก +200 | ผิด -100</p>
+                </div>
+                
+                <div class="space-y-4 text-left">
+                    <input type="text" id="team1-name" value="ICE DRAGONS" placeholder="ชื่อทีม 1" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-sky-500 transition-all text-white">
+                    <input type="text" id="team2-name" value="FIRE PHENIX" placeholder="ชื่อทีม 2" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-pink-500 transition-all text-white">
+                    <input type="text" id="team3-name" value="THUNDER BOLTS" placeholder="ชื่อทีม 3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-emerald-500 transition-all text-white">
+                    <button onclick="startGame()" class="w-full bg-gradient-to-r from-sky-600 to-indigo-600 py-4 rounded-xl text-xl font-black hover:brightness-110 active:scale-95 transition-all shadow-xl mt-4">START BATTLE</button>
+                </div>
             </div>
-            <button onclick="startGame()" class="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg text-xl shadow-lg transform hover:scale-105 transition">
-                เริ่มการแข่งขัน 🚀
-            </button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden flex-grow flex flex-col p-4 sm:p-8">
+            <!-- Scoreboard -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div id="score-card-0" class="glass-panel p-3 sm:p-5 text-center border-b-4 border-sky-500 transition-all duration-300">
+                    <p id="disp-team1" class="text-[10px] font-bold text-sky-400 uppercase truncate mb-1"></p>
+                    <p id="score-0" class="text-2xl sm:text-4xl font-black">0</p>
+                    <input type="number" placeholder="±" onkeydown="handleBonusKey(event, 0)" class="bonus-input mt-2">
+                </div>
+                <div id="score-card-1" class="glass-panel p-3 sm:p-5 text-center border-b-4 border-pink-500 transition-all duration-300">
+                    <p id="disp-team2" class="text-[10px] font-bold text-pink-400 uppercase truncate mb-1"></p>
+                    <p id="score-1" class="text-2xl sm:text-4xl font-black">0</p>
+                    <input type="number" placeholder="±" onkeydown="handleBonusKey(event, 1)" class="bonus-input mt-2">
+                </div>
+                <div id="score-card-2" class="glass-panel p-3 sm:p-5 text-center border-b-4 border-emerald-500 transition-all duration-300">
+                    <p id="disp-team3" class="text-[10px] font-bold text-emerald-400 uppercase truncate mb-1"></p>
+                    <p id="score-2" class="text-2xl sm:text-4xl font-black">0</p>
+                    <input type="number" placeholder="±" onkeydown="handleBonusKey(event, 2)" class="bonus-input mt-2">
+                </div>
+            </div>
+
+            <!-- Timer & Info -->
+            <div class="flex justify-between items-end mb-2 px-2">
+                <div>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Current Turn</span>
+                    <h3 id="active-team-display" class="text-xl sm:text-3xl font-black text-yellow-400 italic">TEAM NAME</h3>
+                </div>
+                <div class="text-right">
+                    <span id="timer-text" class="text-3xl sm:text-5xl font-black font-mono">90</span>
+                    <span class="text-[10px] block uppercase font-bold text-red-500">Seconds</span>
+                </div>
+            </div>
+            <div class="w-full bg-white/5 h-2 rounded-full mb-6 overflow-hidden border border-white/5">
+                <div id="timer-bar" class="timer-bar h-full bg-gradient-to-r from-sky-500 to-red-500" style="width: 100%;"></div>
+            </div>
+
+            <!-- Question Area -->
+            <div id="main-question-container" class="flex-grow glass-panel relative flex flex-col items-center justify-center p-6 sm:p-10 border-white/10 shadow-inner overflow-hidden transition-all duration-500">
+                <div id="question-loader" class="hidden text-center z-20">
+                    <div class="slot-machine-anim text-6xl sm:text-8xl mb-4">🌡️</div>
+                    <p id="loader-text" class="text-xl sm:text-2xl font-bold gradient-text animate-pulse uppercase">Generating...</p>
+                </div>
+                
+                <div id="question-content" class="w-full h-full flex flex-col z-10 transition-all duration-500">
+                    <div class="text-center mb-6 sm:mb-8">
+                        <span id="question-number" class="bg-white/5 px-3 py-1 rounded-full text-[10px] font-bold text-sky-300 border border-sky-500/30 mb-2 inline-block">Question</span>
+                        <p id="question-text" class="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight drop-shadow-2xl"></p>
+                    </div>
+                    
+                    <!-- Mode 1: Multiple Choice -->
+                    <div id="options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-4xl mx-auto flex-grow items-center"></div>
+                    
+                    <!-- Mode 2: Fill in the blank -->
+                    <div id="input-mode-container" class="hidden w-full max-w-md mx-auto flex flex-col items-center gap-6 flex-grow justify-center">
+                        <input type="number" step="0.1" id="special-answer-input" placeholder="พิมพ์คำตอบที่นี่..." class="w-full bg-white/10 border-2 border-yellow-500/50 rounded-2xl p-6 text-4xl font-black text-center outline-none focus:border-yellow-400 focus:bg-white/20 transition-all shadow-[0_0_20px_rgba(234,179,8,0.2)] text-white">
+                        <button onclick="submitInputAnswer()" class="bg-yellow-500 hover:bg-yellow-400 text-black px-12 py-4 rounded-xl font-black text-2xl transition-all shadow-xl active:scale-95">ส่งคำตอบ (ENTER)</button>
+                        <p class="text-yellow-500/70 font-bold animate-bounce uppercase">★ Special Question: +200 Points ★</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-6 flex justify-between items-center h-16">
+                <button id="end-game-btn" onclick="openEndGameConfirm()" class="bg-red-600/20 hover:bg-red-600 border border-red-600/50 text-red-500 hover:text-white px-6 py-2 rounded-xl font-bold text-sm transition-all uppercase tracking-widest">จบการแข่งขัน</button>
+                <button id="next-btn" onclick="prepareNextTurn()" class="hidden bg-white text-black h-full px-12 rounded-xl font-black text-lg hover:bg-yellow-400 transition-all shadow-xl uppercase italic tracking-tighter">NEXT TURN →</button>
+            </div>
         </div>
     </div>
 
-    <!-- Main Game Area -->
-    <div class="w-full max-w-7xl mx-auto hidden" id="gameArea">
-        
-        <!-- Header & Timer -->
-        <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <div class="text-center md:text-left">
-                <h1 class="text-3xl font-bold text-white drop-shadow-md">Physics Battle Phase</h1>
-                <p class="text-yellow-200">โจทย์ฟิสิกส์ประลองปัญญา</p>
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="glass-panel p-8 max-w-sm w-full text-center border-red-500/30">
+            <h3 class="text-2xl font-black mb-4 text-white uppercase italic">ยืนยันการจบเกม?</h3>
+            <p class="text-slate-400 mb-8">คุณต้องการหยุดการแข่งขันและสรุปคะแนนทันทีใช่หรือไม่?</p>
+            <div class="flex gap-4">
+                <button onclick="closeEndGameConfirm()" class="flex-1 bg-slate-800 py-3 rounded-xl font-bold text-white hover:bg-slate-700 transition-all">ยกเลิก</button>
+                <button onclick="confirmEndGame()" class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-white hover:bg-red-500 transition-all shadow-lg shadow-red-600/20">จบเกม!</button>
             </div>
-            
-            <div class="bg-gray-900 px-6 py-3 rounded-xl border-2 border-yellow-400 flex items-center gap-4 shadow-xl">
-                <i class="fas fa-stopwatch text-3xl text-yellow-400"></i>
-                <div id="timerDisplay" class="text-5xl font-mono font-bold text-white">05:00</div>
-                <div class="flex flex-col gap-1">
-                    <button onclick="toggleTimer()" id="timerBtn" class="bg-green-600 hover:bg-green-500 text-xs px-2 py-1 rounded text-white font-bold uppercase">Start</button>
-                    <button onclick="resetTimer()" class="bg-red-600 hover:bg-red-500 text-xs px-2 py-1 rounded text-white font-bold uppercase">Reset</button>
-                </div>
-            </div>
-        </header>
+        </div>
+    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Question Area (Left - 2 Cols) -->
-            <div class="lg:col-span-2 space-y-6">
-                
-                <!-- Topic Selector & Generator -->
-                <div class="card p-6">
-                    <div class="flex flex-wrap gap-2 mb-4 justify-center">
-                        <select id="topicSelect" class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
-                            <option value="all">🔀 สุ่มทุกหัวข้อ</option>
-                            <option value="work_energy">⚙️ งานและพลังงาน</option>
-                            <option value="cons_energy_no_loss">🔋 กฎอนุรักษ์ (ไม่สูญเสีย)</option>
-                            <option value="cons_energy_loss">🔥 กฎอนุรักษ์ (สูญเสีย)</option>
-                            <option value="resistor_code">🌈 แถบสีตัวต้านทาน</option>
-                            <option value="circuit">🔌 วงจร (อนุกรม/ขนาน)</option>
-                            <option value="ray_optics">🔦 ทางเดินแสง (เลนส์/กระจก)</option>
-                            <option value="temp_conv">🌡️ เปลี่ยนหน่วยอุณหภูมิ</option>
-                            <option value="elec_heat">⚡ ไฟฟ้าเป็นความร้อน</option>
-                        </select>
-                        <button onclick="generateQuestion()" class="btn-push bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg flex items-center gap-2">
-                            <i class="fas fa-bolt"></i> สุ่มโจทย์ & เริ่ม!
-                        </button>
-                    </div>
+    <!-- Modals -->
+    <div id="turn-overlay" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl">
+        <div class="text-center turn-announcement p-10">
+            <p class="text-xl text-sky-400 font-bold tracking-[0.3em] mb-4 uppercase">Prepare Yourself</p>
+            <h2 id="overlay-team-name" class="text-6xl sm:text-9xl font-black mb-6 italic text-white drop-shadow-[0_0_40px_rgba(255,255,255,0.2)]">TEAM NAME</h2>
+            <p id="overlay-mode-text" class="text-2xl text-yellow-500 font-bold uppercase"></p>
+        </div>
+    </div>
 
-                    <div class="relative min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 bg-blue-50">
-                        <span id="categoryBadge" class="absolute top-4 left-4 bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded border border-indigo-400">หัวข้อ</span>
-                        
-                        <div id="questionContent" class="text-center w-full">
-                            
-                            <!-- Special Rule Container -->
-                            <div id="specialRuleContainer" class="hidden mb-6 p-4 bg-yellow-100 border-2 border-yellow-400 text-yellow-800 rounded-xl shadow-md transform -rotate-1 mx-auto max-w-md rule-pop">
-                                <h4 class="font-extrabold text-xl mb-1"><i class="fas fa-exclamation-circle"></i> กติกาพิเศษ!</h4>
-                                <p id="specialRuleText" class="text-lg font-bold"></p>
-                            </div>
-
-                            <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 leading-relaxed" id="questionText">
-                                กดปุ่ม "สุ่มโจทย์ & เริ่ม!" เพื่อเริ่มเกม
-                            </h3>
-                            <div id="visualContent" class="my-4 flex justify-center h-24"></div>
-                        </div>
-
-                        <!-- Answer Section (Hidden) -->
-                        <div id="answerSection" class="hidden mt-8 w-full pt-6 border-t border-gray-300 text-center animate-fade-in">
-                            <p class="text-sm text-gray-500 uppercase tracking-wider mb-2">เฉลย / คำตอบ</p>
-                            <p class="text-3xl font-bold text-green-600" id="answerText"></p>
-                            <p class="text-md text-gray-600 mt-2" id="explanationText"></p>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 flex justify-center">
-                        <button onclick="showAnswer()" id="showAnsBtn" class="hidden bg-yellow-500 hover:bg-yellow-400 text-white font-bold py-3 px-8 rounded-full shadow-lg text-lg">
-                            <i class="fas fa-eye"></i> ดูเฉลย
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Scoreboard (Right - 1 Col) -->
-            <div class="lg:col-span-1 space-y-4">
-                <div class="card p-4 bg-gradient-to-b from-gray-50 to-gray-200">
-                    <h2 class="text-xl font-bold text-center mb-4 text-gray-700">🏆 คะแนนทีม</h2>
-                    
-                    <!-- Team 1 -->
-                    <div class="bg-white p-4 rounded-lg shadow mb-3 border-l-8 border-blue-500 flex justify-between items-center">
-                        <div>
-                            <h3 id="team1Name" class="font-bold text-lg text-gray-800">Team A</h3>
-                            <div class="text-4xl font-bold text-blue-600" id="score1">0</div>
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <button onclick="adjustScore(1, 1)" class="w-10 h-10 rounded-full bg-green-100 text-green-600 hover:bg-green-200 font-bold text-xl">+</button>
-                            <button onclick="adjustScore(1, -1)" class="w-10 h-10 rounded-full bg-red-100 text-red-600 hover:bg-red-200 font-bold text-xl">-</button>
-                        </div>
-                    </div>
-
-                    <!-- Team 2 -->
-                    <div class="bg-white p-4 rounded-lg shadow mb-3 border-l-8 border-red-500 flex justify-between items-center">
-                        <div>
-                            <h3 id="team2Name" class="font-bold text-lg text-gray-800">Team B</h3>
-                            <div class="text-4xl font-bold text-red-600" id="score2">0</div>
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <button onclick="adjustScore(2, 1)" class="w-10 h-10 rounded-full bg-green-100 text-green-600 hover:bg-green-200 font-bold text-xl">+</button>
-                            <button onclick="adjustScore(2, -1)" class="w-10 h-10 rounded-full bg-red-100 text-red-600 hover:bg-red-200 font-bold text-xl">-</button>
-                        </div>
-                    </div>
-
-                    <!-- Team 3 -->
-                    <div class="bg-white p-4 rounded-lg shadow mb-3 border-l-8 border-green-500 flex justify-between items-center">
-                        <div>
-                            <h3 id="team3Name" class="font-bold text-lg text-gray-800">Team C</h3>
-                            <div class="text-4xl font-bold text-green-600" id="score3">0</div>
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <button onclick="adjustScore(3, 1)" class="w-10 h-10 rounded-full bg-green-100 text-green-600 hover:bg-green-200 font-bold text-xl">+</button>
-                            <button onclick="adjustScore(3, -1)" class="w-10 h-10 rounded-full bg-red-100 text-red-600 hover:bg-red-200 font-bold text-xl">-</button>
-                        </div>
-                    </div>
-
-                    <button onclick="resetScores()" class="w-full mt-4 text-gray-400 text-sm hover:text-red-500">Reset All Scores</button>
-                </div>
+    <div id="result-modal" class="hidden fixed inset-0 bg-slate-950/98 z-[200] flex items-center justify-center p-6 backdrop-blur-2xl overflow-y-auto">
+        <div class="glass-panel p-10 sm:p-16 max-w-4xl w-full text-center border-white/10 my-8">
+            <h2 class="text-5xl font-black mb-8 gradient-text uppercase italic">🏆 สรุปผลการแข่งขัน</h2>
+            <div id="final-scores" class="space-y-6 mb-12"></div>
+            <div class="flex justify-center gap-4">
+                <button onclick="location.reload()" class="bg-sky-600 px-12 py-4 rounded-2xl font-black text-xl uppercase tracking-widest hover:brightness-110 text-white">เริ่มใหม่</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- GAME STATE ---
-        let scores = { 1: 0, 2: 0, 3: 0 };
-        let timerInterval;
-        let timeLeft = 300; // 5 minutes
-        let isRunning = false;
-        
-        // --- SETUP ---
-        function startGame() {
-            document.getElementById('team1Name').textContent = document.getElementById('team1NameInput').value || "Team A";
-            document.getElementById('team2Name').textContent = document.getElementById('team2NameInput').value || "Team B";
-            document.getElementById('team3Name').textContent = document.getElementById('team3NameInput').value || "Team C";
-            
-            document.getElementById('setupScreen').classList.add('hidden');
-            document.getElementById('gameArea').classList.remove('hidden');
+        let teams = [];
+        let currentTeamIndex = 0;
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let timer;
+        let timeLeft = 90;
+        let isAnswered = false;
+
+        // แยกรายการบทลงโทษตามจำนวนครั้ง
+        const punishments10 = ["ดันพื้น 10 ครั้ง", "ลุกนั่ง 10 ครั้ง", "วิ่งอยู่กับที่ 10 วินาที"];
+        const punishments20 = ["ดันพื้น 20 ครั้ง", "ลุกนั่ง 20 ครั้ง", "กระโดดตบ 20 ครั้ง"];
+
+        function generateQuestions() {
+            const list = [];
+            const easyVals = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 75, 80, 90, 100, 20, 40, 80];
+            easyVals.forEach(c => list.push(createQuestion(c, 'choice')));
+            const decimalVals = [2.5, 7.5, 12.5, 17.5, 22.5, 32.5, 42.5, 52.5, 62.5, 82.5];
+            decimalVals.forEach(c => list.push(createQuestion(c, 'choice')));
+            for(let i=0; i<10; i++) list.push(createQuestion(Math.floor(Math.random() * 101), 'choice'));
+            const specialSeed = [1, 2, 3, 4, 6, 7, 8, 9, 11, 12]; 
+            specialSeed.forEach(c => list.push(createQuestion(c, 'input')));
+            return list.sort(() => Math.random() - 0.5);
         }
 
-        // --- SCORE SYSTEM ---
-        function adjustScore(team, delta) {
-            scores[team] += delta;
-            if (scores[team] < 0) scores[team] = 0;
-            document.getElementById(`score${team}`).textContent = scores[team];
-        }
-
-        function resetScores() {
-            if(confirm("ต้องการรีเซ็ตคะแนนทั้งหมดหรือไม่?")) {
-                scores = { 1: 0, 2: 0, 3: 0 };
-                [1,2,3].forEach(t => document.getElementById(`score${t}`).textContent = 0);
-            }
-        }
-
-        // --- TIMER SYSTEM ---
-        function updateTimerDisplay() {
-            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            const s = (timeLeft % 60).toString().padStart(2, '0');
-            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
-            
-            if (timeLeft <= 30) {
-                document.getElementById('timerDisplay').classList.add('text-red-500');
-            } else {
-                document.getElementById('timerDisplay').classList.remove('text-red-500');
-            }
-        }
-
-        function toggleTimer() {
-            const btn = document.getElementById('timerBtn');
-            if (isRunning) {
-                clearInterval(timerInterval);
-                btn.textContent = "Resume";
-                btn.classList.replace('bg-yellow-600', 'bg-green-600');
-                btn.classList.replace('hover:bg-yellow-500', 'hover:bg-green-500');
-                isRunning = false;
-            } else {
-                if (timeLeft <= 0) timeLeft = 300;
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    updateTimerDisplay();
-                    if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
-                        isRunning = false;
-                        alert("หมดเวลา! (Time's Up)");
-                    }
-                }, 1000);
-                btn.textContent = "Pause";
-                btn.classList.replace('bg-green-600', 'bg-yellow-600');
-                btn.classList.replace('hover:bg-green-500', 'hover:bg-yellow-500');
-                isRunning = true;
-            }
-        }
-
-        function resetTimer(customTime = 300) {
-            clearInterval(timerInterval);
-            isRunning = false;
-            timeLeft = customTime;
-            updateTimerDisplay();
-            const btn = document.getElementById('timerBtn');
-            btn.textContent = "Start";
-            btn.classList.replace('bg-yellow-600', 'bg-green-600');
-        }
-
-        // --- QUESTION GENERATOR ENGINE ---
-        
-        const resistorColors = [
-            { name: 'Black', val: 0, code: 'bg-r-black', text: 'white' },
-            { name: 'Brown', val: 1, code: 'bg-r-brown', text: 'white' },
-            { name: 'Red', val: 2, code: 'bg-r-red', text: 'white' },
-            { name: 'Orange', val: 3, code: 'bg-r-orange', text: 'black' },
-            { name: 'Yellow', val: 4, code: 'bg-r-yellow', text: 'black' },
-            { name: 'Green', val: 5, code: 'bg-r-green', text: 'white' },
-            { name: 'Blue', val: 6, code: 'bg-r-blue', text: 'white' },
-            { name: 'Violet', val: 7, code: 'bg-r-violet', text: 'white' },
-            { name: 'Grey', val: 8, code: 'bg-r-grey', text: 'black' },
-            { name: 'White', val: 9, code: 'bg-r-white', text: 'black' }
-        ];
-
-        const tolerances = [
-            { name: 'Gold', val: 5, code: 'bg-r-gold' },
-            { name: 'Silver', val: 10, code: 'bg-r-silver' }
-        ];
-
-        // Helper: Random Integer
-        const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-        // Generators per Topic
-        const generators = {
-            work_energy: () => {
-                const types = [
-                    () => {
-                        const F = rand(10, 100);
-                        const s = rand(2, 20);
-                        return {
-                            q: `ออกแรง ${F} นิวตัน ผลักวัตถุไปตามพื้นราบได้ระยะทาง ${s} เมตร จงหางานที่ทำ (Work)`,
-                            a: `${F * s} จูล (J)`,
-                            exp: `สูตร W = F × s = ${F} × ${s}`
-                        };
-                    },
-                    () => {
-                        const m = rand(2, 20);
-                        const v = rand(2, 10) * 2; // keep numbers nice
-                        return {
-                            q: `วัตถุมวล ${m} kg กำลังเคลื่อนที่ด้วยความเร็ว ${v} m/s จงหาพลังงานจลน์ (Ek)`,
-                            a: `${0.5 * m * v * v} จูล (J)`,
-                            exp: `สูตร Ek = ½mv² = ½ × ${m} × ${v}²`
-                        };
-                    },
-                    () => {
-                        const m = rand(1, 10);
-                        const h = rand(5, 50);
-                        return {
-                            q: `ก้อนหินมวล ${m} kg อยู่บนหน้าผาสูง ${h} เมตร จากพื้นดิน จงหาพลังงานศักย์โน้มถ่วง (Ep) (ให้ g=10)`,
-                            a: `${m * 10 * h} จูล (J)`,
-                            exp: `สูตร Ep = mgh = ${m} × 10 × ${h}`
-                        };
-                    }
-                ];
-                return pick(types)();
-            },
-            
-            cons_energy_no_loss: () => {
-                const m = rand(1, 5);
-                const h = rand(5, 20);
-                const g = 10;
-                // mgh = 1/2mv^2 => v = sqrt(2gh)
-                return {
-                    q: `วัตถุมวล ${m} kg ตกจากตึกสูง ${h} เมตร ลงสู่พื้นดินโดยไม่มีแรงต้านอากาศ ความเร็วขณะกระทบพื้นเป็นเท่าใด? (g=10)`,
-                    a: `${Math.sqrt(2*g*h).toFixed(2)} m/s`,
-                    exp: `กฎอนุรักษ์พลังงาน: Ep (บน) = Ek (ล่าง) <br> mgh = ½mv² <br> v = √(2gh) = √(2×10×${h})`
-                };
-            },
-
-            cons_energy_loss: () => {
-                const m = rand(2, 10);
-                const h = 10;
-                const f = rand(1, 5);
-                const s = 10; // distance down
-                const w_f = f * s;
-                const ep = m * 10 * h;
-                const ek = ep - w_f;
-                return {
-                    q: `วัตถุมวล ${m} kg ไถลลงจากพื้นเอียงสูง ${h} เมตร มีแรงเสียดทานเฉลี่ย ${f} N ตลอดความยาวพื้นเอียง ${s} เมตร พลังงานจลน์ที่ปลายพื้นเอียงเป็นเท่าใด?`,
-                    a: `${ek} จูล (J)`,
-                    exp: `E_start - W_loss = E_final <br> mgh - (f×s) = Ek <br> (${m}×10×${h}) - (${f}×${s}) = ${ep} - ${w_f}`
-                };
-            },
-
-            resistor_code: () => {
-                const is5Band = Math.random() > 0.5;
-                let c1 = pick(resistorColors.slice(1)); // First digit can't be black
-                let c2 = pick(resistorColors);
-                let c3 = is5Band ? pick(resistorColors) : null;
-                let mul = pick(resistorColors.slice(0, 7)); // Multiplier up to Mega
-                let tol = pick(tolerances);
-
-                let val = 0;
-                let bandsHtml = '';
-
-                if (is5Band) {
-                    val = parseInt(`${c1.val}${c2.val}${c3.val}`) * Math.pow(10, mul.val);
-                    bandsHtml = `
-                        <div class="resistor-band ${c1.code}"></div>
-                        <div class="resistor-band ${c2.code}"></div>
-                        <div class="resistor-band ${c3.code}"></div>
-                        <div class="resistor-band ${mul.code}"></div>
-                        <div class="resistor-band ${tol.code}" style="margin-left: 10px;"></div>
-                    `;
-                } else {
-                    val = parseInt(`${c1.val}${c2.val}`) * Math.pow(10, mul.val);
-                    bandsHtml = `
-                        <div class="resistor-band ${c1.code}"></div>
-                        <div class="resistor-band ${c2.code}"></div>
-                        <div class="resistor-band ${mul.code}"></div>
-                        <div class="resistor-band ${tol.code}" style="margin-left: 10px;"></div>
-                    `;
-                }
-
-                // Format value nicely (k, M)
-                let displayVal = val;
-                let unit = "Ω";
-                if (val >= 1000000) { displayVal = val/1000000; unit = "MΩ"; }
-                else if (val >= 1000) { displayVal = val/1000; unit = "kΩ"; }
-
-                return {
-                    q: `จงอ่านค่าความต้านทานจากแถบสีต่อไปนี้ (${is5Band ? '5' : '4'} แถบ)`,
-                    visual: bandsHtml,
-                    a: `${displayVal} ${unit} ±${tol.val}%`,
-                    exp: `แถบสี: ${c1.name}, ${c2.name} ${is5Band ? ', '+c3.name : ''}, x10^${mul.val}, Tol ${tol.val}%`
-                };
-            },
-
-            circuit: () => {
-                const type = Math.random() > 0.5 ? 'Series' : 'Parallel';
-                const r1 = rand(1, 10) * 10;
-                const r2 = rand(1, 10) * 10;
-
-                if (type === 'Series') {
-                    return {
-                        q: `ตัวต้านทาน R1 = ${r1}Ω และ R2 = ${r2}Ω ต่อกันแบบ **อนุกรม** ความต้านทานรวมเป็นเท่าใด?`,
-                        a: `${r1 + r2} Ω`,
-                        exp: `อนุกรม: R_total = R1 + R2`
-                    };
-                } else {
-                    // Make parallel nice numbers if possible, or just exact formula
-                    // Let's use easy numbers: if R1=R2, R/2. Or R1=30, R2=60 -> 20.
-                    // For random, keep it simple formula display
-                    const num = r1 * r2;
-                    const den = r1 + r2;
-                    const ans = (num/den).toFixed(2);
-                    return {
-                        q: `ตัวต้านทาน R1 = ${r1}Ω และ R2 = ${r2}Ω ต่อกันแบบ **ขนาน** ความต้านทานรวมเป็นเท่าใด?`,
-                        a: `${ans} Ω`,
-                        exp: `ขนาน: (R1 × R2) / (R1 + R2) = ${num} / ${den}`
-                    };
-                }
-            },
-
-            ray_optics: () => {
-                const scenarios = [
-                    { q: "วัตถุวางอยู่ระหว่างจุดโฟกัส (F) กับเลนส์นูน", a: "ภาพเสมือน, หัวตั้ง, ขนาดขยาย", exp: "เลนส์นูน ระยะวัตถุ < f จะได้ภาพเสมือนขนาดใหญ่ (เช่น แว่นขยาย)" },
-                    { q: "วัตถุวางอยู่ที่จุดศูนย์กลางความโค้ง (C) หน้ากระจกเว้า", a: "ภาพจริง, หัวกลับ, ขนาดเท่าวัตถุ", exp: "กระจกเว้า วางที่ C ภาพเกิดที่ C ขนาดเท่าเดิม" },
-                    { q: "วัตถุวางหน้ากระจกนูน (ระยะใดก็ได้)", a: "ภาพเสมือน, หัวตั้ง, ขนาดเล็กกว่าวัตถุ", exp: "กระจกนูนและเลนส์เว้า ให้ภาพเสมือนหัวตั้งขนาดเล็กเสมอ" },
-                    { q: "วัตถุวางไกลมาก (ระยะอนันต์) หน้าเลนส์นูน", a: "ภาพจริง, เป็นจุด, อยู่ที่จุดโฟกัส", exp: "แสงขนานรวมกันที่จุดโฟกัสหลังเลนส์" },
-                    { q: "วัตถุวางระหว่าง F และ 2F หน้าเลนส์นูน", a: "ภาพจริง, หัวกลับ, ขนาดขยาย", exp: "เกิดภาพหลังเลนส์ ไกลกว่า 2F" }
-                ];
-                return pick(scenarios);
-            },
-
-            temp_conv: () => {
-                const c = rand(20, 100);
-                const askF = Math.random() > 0.5;
-                
-                if (askF) {
-                    const f = (c * 9/5) + 32;
-                    return {
-                        q: `เปลี่ยนอุณหภูมิ ${c}°C เป็นองศาฟาเรนไฮต์ (°F)`,
-                        a: `${f.toFixed(1)} °F`,
-                        exp: `F = (C × 9/5) + 32`
-                    };
-                } else {
-                    const k = c + 273;
-                    return {
-                        q: `เปลี่ยนอุณหภูมิ ${c}°C เป็นเคลวิน (K)`,
-                        a: `${k} K`,
-                        exp: `K = C + 273`
-                    };
-                }
-            },
-
-            elec_heat: () => {
-                // Pt = mc(T2-T1)
-                // Realistic Kettle Scenario
-                
-                // Mass: 0.5 - 1.5 kg (Step 0.1)
-                const m_kg = rand(5, 15) / 10; 
-                
-                // Power: 1500 - 2500 W (Typical electric kettle)
-                const P = rand(15, 25) * 100; 
-                
-                // Limit time so water doesn't boil over (assuming start at ~20°C, max rise ~80°C)
-                // t_max = (m * c * 80) / P
-                const c = 4200;
-                const max_time = Math.floor((m_kg * c * 80) / P);
-                
-                // Random time between 20s and max_time, step 5s or 10s
-                // Ensure min time is at least 20s
-                const safe_max_step = Math.max(2, Math.floor(max_time/10));
-                const t_sec = rand(2, safe_max_step) * 10;
-                
-                // Q = Pt
-                const Q = P * t_sec;
-                // dt = Q / mc
-                const dT = Q / (m_kg * c);
-                
-                return {
-                    q: `กาต้มน้ำไฟฟ้ากำลัง ${P} วัตต์ ต้มน้ำมวล ${m_kg} kg เป็นเวลา ${t_sec} วินาที อุณหภูมิน้ำจะเพิ่มขึ้นกี่องศาเซลเซียส? <br><span class="text-sm text-gray-500">(กำหนดให้ c น้ำ = 4200 J/kg·K และไม่มีการสูญเสียความร้อน)</span>`,
-                    a: `${dT.toFixed(1)} °C`,
-                    exp: `จากสูตร Pt = mcΔT <br> แทนค่า: ${P}×${t_sec} = ${m_kg}×4200×ΔT <br> พลังงานไฟฟ้าที่ใช้ = ${Q.toLocaleString()} J <br> ΔT = ${Q} / ${(m_kg*c)} = ${dT.toFixed(2)} °C`
-                };
-            }
-        };
-
-        // --- FUNNY RULES (CHALLENGE MODE) ---
-        const specialRules = [
-            "คนตอบต้องยืนขาเดียวจนกว่าจะตอบเสร็จ 🦩",
-          
-            "ห้ามใช้มือขวาเขียนคำตอบ (ใช้มือซ้ายเท่านั้น) ✍️",
-           
-            "Speed Run! ข้อนี้มีเวลาแค่ 1 นาทีเท่านั้น ⏱️",
-        
-            "หัวหน้าทีมต้องเต้นไก่ย่าง 1 รอบก่อนตอบ 🐔",
-            
-            
-        ];
-
-        // --- MAIN LOGIC ---
-
-        function generateQuestion() {
-            // UI Reset
-            document.getElementById('answerSection').classList.add('hidden');
-            document.getElementById('showAnsBtn').classList.remove('hidden');
-            document.getElementById('visualContent').innerHTML = '';
-            
-            // Topic Selection
-            let topic = document.getElementById('topicSelect').value;
-            const keys = Object.keys(generators);
-            
-            if (topic === 'all') {
-                topic = pick(keys);
-            }
-
-            // Map Topic ID to Thai Name
-            const names = {
-                work_energy: "งานและพลังงาน",
-                cons_energy_no_loss: "อนุรักษ์พลังงาน (ไม่สูญเสีย)",
-                cons_energy_loss: "อนุรักษ์พลังงาน (สูญเสีย)",
-                resistor_code: "แถบสีตัวต้านทาน",
-                circuit: "วงจรไฟฟ้า",
-                ray_optics: "ทางเดินแสง",
-                temp_conv: "เปลี่ยนหน่วยอุณหภูมิ",
-                elec_heat: "ไฟฟ้าและความร้อน"
+        function createQuestion(c, mode) {
+            const units = ['C', 'F', 'Re', 'K'];
+            let from = units[Math.floor(Math.random() * units.length)];
+            let to = units.filter(u => u !== from)[Math.floor(Math.random() * (units.length - 1))];
+            const getVal = (cVal, unit) => {
+                if(unit === 'C') return cVal;
+                if(unit === 'F') return (cVal * 9/5) + 32;
+                if(unit === 'Re') return cVal * 4/5;
+                if(unit === 'K') return cVal + 273;
             };
-            document.getElementById('categoryBadge').textContent = names[topic];
-
-            // Generate Question
-            const data = generators[topic]();
-            document.getElementById('questionText').innerHTML = data.q;
-            if(data.visual) {
-                document.getElementById('visualContent').innerHTML = data.visual;
-            }
-            
-            // Store Answer
-            document.getElementById('answerText').innerHTML = data.a;
-            document.getElementById('explanationText').innerHTML = data.exp;
-
-            // --- SPECIAL RULE LOGIC ---
-            const ruleContainer = document.getElementById('specialRuleContainer');
-            const ruleText = document.getElementById('specialRuleText');
-            
-            // 60% chance of special rule
-            if (Math.random() > 0.4) {
-                const rule = pick(specialRules);
-                ruleText.textContent = rule;
-                ruleContainer.classList.remove('hidden');
-                
-                // Special Timer Logic for "Speed Run" rule
-                if(rule.includes("1 นาที")) {
-                    resetTimer(60); // Set to 60s
-                } else {
-                    resetTimer(300); // Normal 5 mins
+            const inputVal = parseFloat(getVal(c, from).toFixed(2));
+            const correctVal = parseFloat(getVal(c, to).toFixed(2));
+            const fromName = {C:'°C', F:'°F', Re:'°R', K:'K'};
+            const fullName = {C:'เซลเซียส', F:'ฟาเรนไฮต์', Re:'โรเมอร์', K:'เคลวิน'};
+            let q = {
+                type: mode,
+                text: `${inputVal}${fromName[from]} เป็นกี่ ${fullName[to]}?`,
+                correct: correctVal,
+                points: mode === 'input' ? 200 : 100,
+                penalty: mode === 'input' ? -100 : -50
+            };
+            if (mode === 'choice') {
+                let distractors = new Set([
+                    parseFloat((correctVal + 10).toFixed(2)),
+                    parseFloat((correctVal - 10).toFixed(2)),
+                    parseFloat((correctVal + 32).toFixed(2)),
+                    parseFloat((correctVal * 5/9).toFixed(2))
+                ]);
+                let options = [correctVal];
+                let distArray = Array.from(distractors).filter(v => v !== correctVal && !isNaN(v));
+                while(options.length < 4) {
+                    let choice = distArray.length > 0 ? distArray.shift() : parseFloat((correctVal + Math.random() * 20).toFixed(2));
+                    if(!options.includes(choice)) options.push(choice);
                 }
-            } else {
-                ruleContainer.classList.add('hidden');
-                resetTimer(300); // Normal 5 mins
+                q.options = options.sort(() => Math.random() - 0.5);
             }
-
-            // --- AUTO START TIMER ---
-            toggleTimer(); // This starts the timer because resetTimer() set isRunning to false
+            return q;
         }
 
-        function showAnswer() {
-            document.getElementById('answerSection').classList.remove('hidden');
-            document.getElementById('showAnsBtn').classList.add('hidden');
+        function startGame() {
+            teams = [
+                { name: document.getElementById('team1-name').value || "TEAM 1", score: 0 },
+                { name: document.getElementById('team2-name').value || "TEAM 2", score: 0 },
+                { name: document.getElementById('team3-name').value || "TEAM 3", score: 0 }
+            ];
+            document.getElementById('disp-team1').innerText = teams[0].name;
+            document.getElementById('disp-team2').innerText = teams[1].name;
+            document.getElementById('disp-team3').innerText = teams[2].name;
+            questions = generateQuestions();
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            showTurnOverlay();
+        }
+
+        function openEndGameConfirm() { document.getElementById('confirm-modal').classList.remove('hidden'); }
+        function closeEndGameConfirm() { document.getElementById('confirm-modal').classList.add('hidden'); }
+        function confirmEndGame() { closeEndGameConfirm(); showFinalResult(); }
+
+        function showTurnOverlay() {
+            const q = questions[currentQuestionIndex];
+            const overlay = document.getElementById('turn-overlay');
+            const nameDisp = document.getElementById('overlay-team-name');
+            const modeDisp = document.getElementById('overlay-mode-text');
+            nameDisp.innerText = teams[currentTeamIndex].name;
+            modeDisp.innerText = q.type === 'input' ? "★ SPECIAL INPUT MODE ★" : "Standard Mode";
+            modeDisp.className = q.type === 'input' ? "text-2xl text-yellow-500 font-bold uppercase animate-pulse" : "text-2xl text-sky-400 font-bold uppercase";
+            const colors = ['text-sky-400', 'text-pink-400', 'text-emerald-400'];
+            nameDisp.className = `text-6xl sm:text-9xl font-black mb-6 italic drop-shadow-[0_0_40px_rgba(255,255,255,0.2)] ${colors[currentTeamIndex]}`;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                loadQuestion();
+            }, 2000);
+        }
+
+        function loadQuestion() {
+            if(currentQuestionIndex >= questions.length) { showFinalResult(); return; }
+            isAnswered = false;
+            const q = questions[currentQuestionIndex];
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('question-content').classList.add('hidden');
+            document.getElementById('question-loader').classList.remove('hidden');
+            document.getElementById('loader-text').innerText = q.type === 'input' ? "Special Challenge..." : "Generating...";
+            document.getElementById('main-question-container').classList.toggle('special-mode-border', q.type === 'input');
+            const inputContainer = document.getElementById('input-mode-container');
+            inputContainer.classList.add('hidden');
+            const oldLabels = inputContainer.querySelectorAll('.correct-label');
+            oldLabels.forEach(el => el.remove());
+            document.getElementById('options-grid').classList.add('hidden');
+            document.getElementById('special-answer-input').value = '';
+            document.getElementById('special-answer-input').className = "w-full bg-white/10 border-2 border-yellow-500/50 rounded-2xl p-6 text-4xl font-black text-center outline-none focus:border-yellow-400 focus:bg-white/20 transition-all shadow-[0_0_20px_rgba(234,179,8,0.2)] text-white";
+            [0,1,2].forEach(i => {
+                const card = document.getElementById(`score-card-${i}`);
+                if(i === currentTeamIndex) card.classList.add('active-team-glow');
+                else card.classList.remove('active-team-glow');
+            });
+            document.getElementById('active-team-display').innerText = teams[currentTeamIndex].name;
+            setTimeout(() => {
+                document.getElementById('question-loader').classList.add('hidden');
+                document.getElementById('question-content').classList.remove('hidden');
+                document.getElementById('question-number').innerText = `Question ${currentQuestionIndex + 1} of 50 ${q.type === 'input' ? '(SPECIAL)' : ''}`;
+                document.getElementById('question-text').innerHTML = q.text;
+                if (q.type === 'choice') {
+                    const grid = document.getElementById('options-grid');
+                    grid.classList.remove('hidden');
+                    grid.innerHTML = '';
+                    q.options.forEach(opt => {
+                        const btn = document.createElement('button');
+                        btn.className = "btn-option bg-white/5 border border-white/10 p-5 sm:p-8 rounded-2xl text-2xl sm:text-4xl font-black transition-all text-white shadow-lg";
+                        btn.innerText = opt;
+                        btn.onclick = () => checkChoiceAnswer(opt, btn);
+                        grid.appendChild(btn);
+                    });
+                } else {
+                    inputContainer.classList.remove('hidden');
+                    document.getElementById('special-answer-input').focus();
+                }
+                startTimer();
+            }, 800);
+        }
+
+        function checkChoiceAnswer(selected, btn) {
+            if(isAnswered) return;
+            isAnswered = true;
+            clearInterval(timer);
+            const q = questions[currentQuestionIndex];
+            if(selected === q.correct) {
+                btn.classList.replace('bg-white/5', 'bg-emerald-600');
+                updateTeamScore(currentTeamIndex, q.points);
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            } else {
+                btn.classList.replace('bg-white/5', 'bg-red-600');
+                updateTeamScore(currentTeamIndex, q.penalty);
+                highlightCorrectChoice();
+            }
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function submitInputAnswer() {
+            if(isAnswered) return;
+            const inputVal = parseFloat(document.getElementById('special-answer-input').value);
+            if(isNaN(inputVal)) return;
+            isAnswered = true;
+            clearInterval(timer);
+            const q = questions[currentQuestionIndex];
+            const inputField = document.getElementById('special-answer-input');
+            if(Math.abs(inputVal - q.correct) < 0.01) {
+                inputField.classList.add('bg-emerald-500/50', 'border-emerald-400');
+                updateTeamScore(currentTeamIndex, q.points);
+                confetti({ particleCount: 250, spread: 100, origin: { y: 0.6 }, colors: ['#eab308', '#ffffff'] });
+            } else {
+                inputField.classList.add('bg-red-500/50', 'border-red-400');
+                updateTeamScore(currentTeamIndex, q.penalty);
+                const correctLabel = document.createElement('div');
+                correctLabel.className = "correct-label text-3xl font-black text-emerald-400 mt-2";
+                correctLabel.innerText = `เฉลยที่ถูกต้อง: ${q.correct}`;
+                document.getElementById('input-mode-container').appendChild(correctLabel);
+            }
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function highlightCorrectChoice() {
+            const q = questions[currentQuestionIndex];
+            const allBtns = document.querySelectorAll('#options-grid button');
+            allBtns.forEach(b => {
+                if(parseFloat(b.innerText) === q.correct) {
+                    b.classList.replace('bg-white/5', 'bg-emerald-700');
+                    b.classList.add('border-white', 'scale-105');
+                }
+            });
+        }
+
+        function handleTimeout() {
+            isAnswered = true;
+            const q = questions[currentQuestionIndex];
+            updateTeamScore(currentTeamIndex, q.penalty);
+            if (q.type === 'choice') highlightCorrectChoice();
+            else {
+                const correctLabel = document.createElement('div');
+                correctLabel.className = "correct-label text-3xl font-black text-emerald-400 mt-2";
+                correctLabel.innerText = `TIMEOUT! เฉลยคือ: ${q.correct}`;
+                document.getElementById('input-mode-container').appendChild(correctLabel);
+            }
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 90;
+            updateTimerUI();
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+                if(timeLeft <= 0) { clearInterval(timer); if(!isAnswered) handleTimeout(); }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            document.getElementById('timer-text').innerText = timeLeft;
+            document.getElementById('timer-bar').style.width = (timeLeft / 90) * 100 + '%';
+            if(timeLeft <= 10) document.getElementById('timer-text').classList.add('text-red-500', 'animate-pulse');
+            else document.getElementById('timer-text').classList.remove('text-red-500', 'animate-pulse');
+        }
+
+        function updateTeamScore(index, change) {
+            teams[index].score += change;
+            const scoreEl = document.getElementById(`score-${index}`);
+            scoreEl.innerText = teams[index].score;
+            scoreEl.classList.remove('score-change-anim');
+            void scoreEl.offsetWidth; 
+            scoreEl.classList.add('score-change-anim');
+        }
+
+        function handleBonusKey(event, index) {
+            if (event.key === 'Enter') {
+                const bonusVal = parseInt(event.target.value);
+                if (!isNaN(bonusVal)) { updateTeamScore(index, bonusVal); event.target.value = ''; event.target.blur(); }
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !isAnswered) {
+                const q = questions[currentQuestionIndex];
+                if (q && q.type === 'input' && document.activeElement.id === 'special-answer-input') submitInputAnswer();
+                else if (document.getElementById('next-btn').offsetParent !== null) prepareNextTurn();
+            }
+        });
+
+        function prepareNextTurn() { currentQuestionIndex++; currentTeamIndex = (currentTeamIndex + 1) % 3; showTurnOverlay(); }
+
+        function showFinalResult() {
+            clearInterval(timer);
+            document.getElementById('result-modal').classList.remove('hidden');
+            const resDiv = document.getElementById('final-scores');
+            resDiv.innerHTML = '';
+            const sorted = [...teams].sort((a,b) => b.score - a.score);
+            const medals = ['🥇 ชนะเลิศ', '🥈 รองอันดับ 1', '🥉 รองอันดับ 2'];
+            const colors = ['border-yellow-400 ring-2 ring-yellow-400 bg-yellow-400/10 scale-105', 'border-slate-400 bg-slate-400/5', 'border-orange-400 bg-orange-400/5'];
+
+            sorted.forEach((t, i) => {
+                let punishment = null;
+                if (i === 1) { // อันดับ 2
+                    punishment = punishments10[Math.floor(Math.random() * punishments10.length)];
+                } else if (i === 2) { // อันดับสุดท้าย
+                    punishment = punishments20[Math.floor(Math.random() * punishments20.length)];
+                }
+                
+                resDiv.innerHTML += `
+                    <div class="flex flex-col sm:flex-row justify-between items-center p-6 rounded-2xl border transition-all ${colors[i]}">
+                        <div class="flex items-center gap-6 mb-4 sm:mb-0">
+                            <span class="text-4xl sm:text-5xl">${medals[i].split(' ')[0]}</span>
+                            <div class="text-left text-white">
+                                <p class="text-xs font-bold uppercase text-slate-400 tracking-widest">${medals[i].split(' ')[1]}</p>
+                                <p class="text-2xl sm:text-3xl font-black uppercase italic">${t.name}</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center sm:items-end gap-2">
+                            <span class="text-4xl font-black text-sky-400">${t.score} PTS</span>
+                            ${punishment ? `
+                                <div class="bg-red-600/20 border border-red-500/50 px-4 py-2 rounded-lg text-red-400 font-bold text-sm animate-pulse">
+                                    💀 บทลงโทษ: ${punishment}
+                                </div>
+                            ` : `
+                                <div class="bg-yellow-500 text-black px-4 py-2 rounded-lg font-black text-xs uppercase tracking-tighter">
+                                    THE CHAMPION
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+            const duration = 5 * 1000;
+            const end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
         }
     </script>
 </body>
