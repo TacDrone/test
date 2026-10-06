@@ -9,141 +9,106 @@
     <style>
         body {
             font-family: 'Kanit', sans-serif;
-            background-color: #050510;
-            color: #ffffff;
             overflow-x: hidden;
         }
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
         
-        .neon-bg {
-            background: radial-gradient(circle at center, #101020 0%, #050510 100%);
-        }
-
-        .neon-box {
-            border: 2px solid #00f3ff;
-            box-shadow: 0 0 15px #00f3ff, inset 0 0 15px #00f3ff;
-            background: rgba(0, 243, 255, 0.05);
-            border-radius: 1rem;
-        }
-
-        .neon-text-cyan {
-            color: #00f3ff;
-            text-shadow: 0 0 10px #00f3ff, 0 0 20px #00f3ff;
-        }
-
-        .neon-text-pink {
-            color: #ff0055;
-            text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055;
-        }
-
-        .neon-text-green {
-            color: #00ff66;
-            text-shadow: 0 0 10px #00ff66, 0 0 20px #00ff66;
-        }
-
-        .neon-btn-cyan {
-            background: transparent;
-            color: #00f3ff;
-            border: 2px solid #00f3ff;
-            box-shadow: 0 0 10px #00f3ff, inset 0 0 5px #00f3ff;
-            transition: all 0.2s ease-in-out;
-        }
-        .neon-btn-cyan:hover {
-            background: #00f3ff;
-            color: #000;
-            box-shadow: 0 0 25px #00f3ff, inset 0 0 10px #00f3ff;
-        }
-
-        .neon-btn-danger {
-            background: transparent;
-            color: #ff0055;
-            border: 2px solid #ff0055;
-            box-shadow: 0 0 10px #ff0055, inset 0 0 5px #ff0055;
-            transition: all 0.2s ease-in-out;
-        }
-        .neon-btn-danger:hover {
-            background: #ff0055;
-            color: #fff;
-            box-shadow: 0 0 25px #ff0055, inset 0 0 10px #ff0055;
-        }
-
-        .input-neon {
-            background: rgba(0,0,0,0.5);
-            border: 2px solid #00f3ff;
-            color: #fff;
-            box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.3);
-        }
-        .input-neon:focus {
-            outline: none;
-            border-color: #00ff66;
-            box-shadow: 0 0 15px #00ff66, inset 0 0 10px #00ff66;
-        }
-
         .shake {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
         }
 
         @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
         }
 
         .flash-green {
             animation: flashGreen 0.5s ease-out;
         }
         @keyframes flashGreen {
-            0% { box-shadow: 0 0 50px #00ff66, inset 0 0 50px #00ff66; }
-            100% { box-shadow: 0 0 15px #00f3ff, inset 0 0 15px #00f3ff; }
+            0% { background-color: #14532d; border-color: #22c55e; } 
+            100% { background-color: #18181b; border-color: #27272a; } 
+        }
+
+        .swim-anim {
+            animation: swim 2s ease-in-out infinite;
+        }
+        @keyframes swim {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-4px) rotate(-2deg); }
         }
     </style>
 </head>
-<body class="neon-bg min-h-screen flex items-center justify-center p-4">
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex items-center justify-center p-4">
 
     <div id="app" class="w-full max-w-2xl relative">
         
-        <!-- Start Screen -->
-        <div id="screen-start" class="text-center neon-box p-10 flex flex-col items-center">
-            <h1 class="text-4xl md:text-6xl font-orbitron font-bold neon-text-cyan mb-4 uppercase">Thermo<br>Cracker</h1>
-            <p class="text-lg md:text-xl text-gray-300 mb-8 font-light">
+        <div id="screen-start" class="text-center bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-10 flex flex-col items-center">
+            <h1 class="text-4xl md:text-6xl font-orbitron font-bold text-blue-400 mb-4 uppercase tracking-wider">Thermo<br>Cracker</h1>
+            <p class="text-lg md:text-xl text-zinc-400 mb-8 font-light">
                 ท้าทายสมองกับเกมเปลี่ยนหน่วยอุณหภูมิ (C, F, R, K)<br>
-                โหมดจับเวลา 5 นาที ทำได้กี่ข้อ?<br>
-                <span class="text-sm text-pink-400 mt-2 block">*ใช้ 273 สำหรับหน่วย Kelvin (ไม่ใช่ 273.15)</span>
+                คุณมีเวลา 4 นาที! ต้องตอบให้ถูกอย่างน้อย 5 ข้อเพื่อหนีจระเข้ 🐊<br>
+                <span class="text-sm text-red-400 mt-2 block">*สำหรับหน่วย Kelvin ไม่มีทศนิยม</span>
             </p>
-            <button onclick="startGame()" class="neon-btn-cyan font-orbitron text-xl px-10 py-4 rounded-full font-bold uppercase tracking-wider">
+            <button onclick="startGame()" class="bg-blue-600 hover:bg-blue-500 text-white transition-colors duration-200 font-orbitron text-xl px-10 py-4 rounded-full font-bold uppercase tracking-wider shadow-lg">
                 Start Game
             </button>
         </div>
 
-        <!-- Game Screen -->
-        <div id="screen-game" class="hidden neon-box p-6 md:p-10 flex flex-col items-center">
+        <div id="screen-game" class="hidden bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-6 md:p-10 flex flex-col items-center transition-colors duration-300">
             <!-- Header (Progress & Score) -->
             <div class="w-full flex justify-between items-center mb-4 font-orbitron">
-                <div class="text-lg text-gray-300">Question: <span id="ui-progress" class="neon-text-cyan font-bold">1</span></div>
-                <div class="text-lg text-gray-300">Score: <span id="ui-score" class="neon-text-green font-bold">0</span></div>
+                <div class="text-lg text-zinc-400">Question: <span id="ui-progress" class="text-blue-400 font-bold">1</span></div>
+                <div class="text-lg text-zinc-400">Score: <span id="ui-score" class="text-green-400 font-bold">0</span></div>
+            </div>
+
+            <!-- Survival Bar with Real Shark -->
+            <div class="w-full flex flex-col mb-6">
+                <div class="flex justify-between text-sm text-zinc-400 mb-2">
+                    <span>Crocodile Chase:</span>
+                    <span id="ui-survival-text" class="text-blue-400 font-bold">0 / 5</span>
+                </div>
+                
+                <div class="relative w-full h-20 bg-gradient-to-b from-cyan-950 to-blue-950 rounded-xl border-2 border-cyan-900 shadow-inner overflow-hidden">
+                    <!-- Safe Island -->
+                    <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-r from-green-900 to-green-950 border-l-4 border-green-700 flex items-center justify-center z-10">
+                        <span class="text-3xl" title="Safe Zone">🏝️</span>
+                    </div>
+                    
+                    <!-- Real Crocodile Graphic -->
+                    <div id="predator-graphic" class="absolute top-3 w-16 h-10 transition-all duration-700 ease-out z-20 swim-anim" style="left: 2%;">
+                        <div class="text-5xl drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]" style="transform: scaleX(-1);">🐊</div>
+                    </div>
+
+                    <!-- Player Graphic -->
+                    <div id="player-graphic" class="absolute top-5 w-8 h-8 transition-all duration-700 ease-out z-20" style="left: 20%;">
+                        <div class="text-3xl animate-bounce drop-shadow-md" style="transform: scaleX(-1);">🏊‍♂️</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Timer -->
-            <div class="w-full bg-gray-900 rounded-full h-4 mb-2 shadow-[0_0_5px_rgba(255,255,255,0.2)] overflow-hidden">
-                <div id="ui-timer-bar" class="h-full rounded-full transition-all duration-1000 ease-linear" style="width: 100%; background: #00ff66; box-shadow: 0 0 10px #00ff66;"></div>
+            <div class="w-full bg-zinc-800 rounded-full h-4 mb-2 overflow-hidden">
+                <div id="ui-timer-bar" class="h-full rounded-full transition-all duration-1000 ease-linear bg-green-500" style="width: 100%;"></div>
             </div>
             <div class="w-full text-right font-orbitron text-sm mb-6"><span id="ui-timer-text" class="text-green-400">300</span>s left</div>
 
             <!-- Question Area -->
             <div class="text-center w-full mb-8" id="question-container">
-                <h2 class="text-2xl text-gray-400 mb-2 font-light">แปลงค่าอุณหภูมิต่อไปนี้</h2>
+                <h2 class="text-2xl text-zinc-400 mb-2 font-light">แปลงค่าอุณหภูมิต่อไปนี้</h2>
                 <div class="flex items-center justify-center gap-4 text-3xl md:text-5xl font-orbitron font-bold mt-4">
-                    <div id="ui-from-value" class="neon-text-pink">--</div>
-                    <div class="text-gray-500 text-2xl md:text-4xl">➔</div>
-                    <div id="ui-to-unit" class="neon-text-cyan">--</div>
+                    <div id="ui-from-value" class="text-red-400">--</div>
+                    <div class="text-zinc-600 text-2xl md:text-4xl">➔</div>
+                    <div id="ui-to-unit" class="text-blue-400">--</div>
                 </div>
             </div>
 
             <!-- Input Area -->
             <div class="w-full flex flex-col items-center mb-6">
                 <input type="number" id="answer-input" step="any" placeholder="กรอกคำตอบที่นี่..." 
-                       class="input-neon w-full max-w-xs text-center text-2xl md:text-3xl py-3 rounded-lg font-orbitron mb-4 transition-all"
+                       class="bg-zinc-950 border-2 border-zinc-700 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full max-w-xs text-center text-2xl md:text-3xl py-3 rounded-xl font-orbitron mb-4 transition-all"
                        onkeydown="if(event.key === 'Enter') checkAnswer()">
                 
                 <div id="feedback-msg" class="h-6 text-lg font-bold tracking-wider mb-4 opacity-0 transition-opacity">
@@ -151,25 +116,24 @@
                 </div>
 
                 <div class="w-full max-w-xs">
-                    <button onclick="checkAnswer()" class="neon-btn-cyan w-full font-orbitron text-lg py-3 rounded-lg font-bold">
+                    <button onclick="checkAnswer()" class="bg-blue-600 hover:bg-blue-500 text-white transition-colors duration-200 w-full font-orbitron text-lg py-3 rounded-xl font-bold shadow-md">
                         SUBMIT
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- End Screen -->
-        <div id="screen-end" class="hidden text-center neon-box p-10 flex flex-col items-center">
-            <h1 class="text-4xl md:text-5xl font-orbitron font-bold neon-text-cyan mb-2 uppercase">Time's Up!</h1>
-            <h2 class="text-2xl text-gray-300 mb-8">สรุปผลคะแนนของคุณ</h2>
+        <div id="screen-end" class="hidden text-center bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-10 flex flex-col items-center">
+            <h1 class="text-4xl md:text-5xl font-orbitron font-bold text-blue-400 mb-2 uppercase">Time's Up!</h1>
+            <h2 class="text-2xl text-zinc-300 mb-8">สรุปผลคะแนนของคุณ</h2>
             
-            <div class="text-6xl md:text-8xl font-orbitron font-bold neon-text-green mb-8">
-                <span id="ui-final-score">0</span><span class="text-4xl text-gray-500"> ข้อ</span>
+            <div class="text-6xl md:text-8xl font-orbitron font-bold text-green-400 mb-8">
+                <span id="ui-final-score">0</span><span class="text-4xl text-zinc-500"> ข้อ</span>
             </div>
             
-            <p id="ui-remark" class="text-xl text-gray-300 mb-8 font-light"></p>
+            <p id="ui-remark" class="text-xl text-zinc-300 mb-8 font-light"></p>
 
-            <button onclick="resetGame()" class="neon-btn-cyan font-orbitron text-xl px-10 py-4 rounded-full font-bold uppercase tracking-wider">
+            <button onclick="resetGame()" class="bg-blue-600 hover:bg-blue-500 text-white transition-colors duration-200 font-orbitron text-xl px-10 py-4 rounded-full font-bold uppercase tracking-wider shadow-lg">
                 Play Again
             </button>
         </div>
@@ -177,13 +141,15 @@
     </div>
 
     <script>
-        const GLOBAL_TIME_LIMIT = 300; // 5 นาที (300 วินาที)
+        const GLOBAL_TIME_LIMIT = 240; // 4 นาที (240 วินาที)
         
         let questions = [];
         let currentQuestionIndex = 0;
         let score = 0;
         let globalTimeLeft = 0;
         let globalTimerInterval;
+
+        const PLAYER_POSITIONS = ['20%', '34%', '48%', '62%', '76%', '88%'];
 
         const UNITS_INFO = {
             'C': '°C',
@@ -295,6 +261,24 @@
             currentQuestionIndex = 0;
             score = 0;
             
+            // Reset Survival Chase UI
+            const uiSurvivalText = document.getElementById('ui-survival-text');
+            const predatorGraphic = document.getElementById('predator-graphic');
+            const playerGraphic = document.getElementById('player-graphic');
+            
+            if(uiSurvivalText && predatorGraphic && playerGraphic) {
+                uiSurvivalText.innerText = `0 / 5`;
+                uiSurvivalText.className = 'text-blue-400 font-bold';
+                
+                // Reset graphics
+                predatorGraphic.style.transform = 'scale(1) rotate(0deg)';
+                predatorGraphic.style.left = '2%';
+                
+                playerGraphic.style.left = PLAYER_POSITIONS[0];
+                playerGraphic.innerHTML = '<div class="text-3xl animate-bounce drop-shadow-md" style="transform: scaleX(-1);">🏊‍♂️</div>';
+                playerGraphic.style.opacity = '1';
+            }
+
             screenStart.classList.add('hidden');
             screenGame.classList.remove('hidden');
             
@@ -340,16 +324,13 @@
             uiTimerBar.style.width = `${percentage}%`;
 
             if (percentage > 50) {
-                uiTimerBar.style.background = '#00ff66';
-                uiTimerBar.style.boxShadow = '0 0 10px #00ff66';
+                uiTimerBar.style.backgroundColor = '#22c55e'; // Tailwind green-500
                 uiTimerText.className = 'text-green-400';
             } else if (percentage > 20) {
-                uiTimerBar.style.background = '#ffea00';
-                uiTimerBar.style.boxShadow = '0 0 10px #ffea00';
+                uiTimerBar.style.backgroundColor = '#eab308'; // Tailwind yellow-500
                 uiTimerText.className = 'text-yellow-400';
             } else {
-                uiTimerBar.style.background = '#ff0055';
-                uiTimerBar.style.boxShadow = '0 0 10px #ff0055';
+                uiTimerBar.style.backgroundColor = '#ef4444'; // Tailwind red-500
                 uiTimerText.className = 'text-red-500 animate-pulse';
             }
         }
@@ -366,19 +347,40 @@
                 uiScore.innerText = score;
                 showFeedback('ถูกต้อง!', 'success');
                 
-                questionContainer.classList.add('flash-green');
-                setTimeout(() => questionContainer.classList.remove('flash-green'), 500);
+                // Update survival bar
+                const uiSurvivalText = document.getElementById('ui-survival-text');
+                const predatorGraphic = document.getElementById('predator-graphic');
+                const playerGraphic = document.getElementById('player-graphic');
+                
+                if(uiSurvivalText && predatorGraphic && playerGraphic) {
+                    uiSurvivalText.innerText = `${score} / 5` + (score >= 5 ? " (Safe!)" : "");
+                    
+                    let posIndex = Math.min(score, 5);
+                    playerGraphic.style.left = PLAYER_POSITIONS[posIndex];
+                    
+                    if (score >= 5) {
+                        uiSurvivalText.className = 'text-green-400 font-bold';
+                        
+                        // Crocodile swims away when player is safe
+                        setTimeout(() => {
+                            predatorGraphic.style.transform = 'scaleX(-1) translateX(-200vw)';
+                        }, 500);
+                    }
+                }
+
+                screenGame.classList.add('flash-green');
+                setTimeout(() => screenGame.classList.remove('flash-green'), 500);
                 
                 answerInput.disabled = true;
                 setTimeout(() => {
                     nextQuestion();
-                }, 700); // เปลี่ยนข้อไวขึ้นในโหมดจับเวลารวม
+                }, 700); 
             } else {
                 // Wrong!
                 showFeedback('ผิด! ลองใหม่', 'danger');
                 
-                questionContainer.classList.add('shake');
-                setTimeout(() => questionContainer.classList.remove('shake'), 500);
+                screenGame.classList.add('shake');
+                setTimeout(() => screenGame.classList.remove('shake'), 500);
                 
                 answerInput.value = '';
                 answerInput.focus();
@@ -390,11 +392,11 @@
             feedbackMsg.style.opacity = '1';
             
             if (type === 'success') {
-                feedbackMsg.className = 'h-6 text-lg font-bold tracking-wider mb-4 transition-opacity neon-text-green';
+                feedbackMsg.className = 'h-6 text-lg font-bold tracking-wider mb-4 transition-opacity text-green-400';
             } else if (type === 'danger') {
-                feedbackMsg.className = 'h-6 text-lg font-bold tracking-wider mb-4 transition-opacity neon-text-pink';
+                feedbackMsg.className = 'h-6 text-lg font-bold tracking-wider mb-4 transition-opacity text-red-400';
             } else {
-                feedbackMsg.className = 'h-6 text-lg font-bold tracking-wider mb-4 transition-opacity neon-text-cyan';
+                feedbackMsg.className = 'h-6 text-lg font-bold tracking-wider mb-4 transition-opacity text-blue-400';
             }
         }
 
@@ -409,20 +411,47 @@
 
         function endGame() {
             clearInterval(globalTimerInterval);
+            
+            const predatorGraphic = document.getElementById('predator-graphic');
+            const playerGraphic = document.getElementById('player-graphic');
+            
+            if (score < 5) {
+                // Predator attack animation before showing end screen
+                if(predatorGraphic && playerGraphic) {
+                    let playerPos = playerGraphic.style.left;
+                    predatorGraphic.style.transitionDuration = '0.3s';
+                    predatorGraphic.style.left = `calc(${playerPos} - 15px)`;
+                    predatorGraphic.style.transform = 'scale(1.8) rotate(15deg)';
+                    
+                    playerGraphic.innerHTML = '<div class="text-4xl animate-ping text-red-500 drop-shadow-lg">💥</div>';
+                    
+                    // หน่วงเวลาให้ดูจระเข้งาบ 1 วินาที ก่อนไปหน้าสุ่มทำโทษ
+                    setTimeout(() => {
+                        showEndScreen(false);
+                    }, 1000);
+                    return; // Delay end screen
+                }
+            }
+            
+            showEndScreen(score >= 5);
+        }
+        
+        function showEndScreen(isSafe) {
             screenGame.classList.add('hidden');
             screenEnd.classList.remove('hidden');
             
             document.getElementById('ui-final-score').innerText = score;
             
             let remark = document.getElementById('ui-remark');
-            if (score >= 50) {
-                remark.innerHTML = "Godlike! คุณคือปรมาจารย์ด้านอุณหพลศาสตร์ตัวจริง <br><span class='neon-text-cyan'>S-RANK</span>";
-            } else if (score >= 35) {
-                remark.innerHTML = "ยอดเยี่ยมมาก! ความเร็วและความแม่นยำสูงมาก <br><span class='neon-text-green'>A-RANK</span>";
-            } else if (score >= 20) {
-                remark.innerHTML = "ทำได้ดี! แต่ยังสามารถเร่งความเร็วได้อีก <br><span class='text-yellow-400'>B-RANK</span>";
+            if (isSafe) {
+                remark.innerHTML = "สุดยอด! คุณตอบถูกครบกำหนด<br>หนีรอดจากจระเข้ได้สำเร็จ! 🏝️🐊💨";
+                remark.className = "text-xl text-green-400 mb-8 font-bold";
             } else {
-                remark.innerHTML = "ต้องฝึกฝนเพิ่มเติมให้ไวขึ้น ลองใหม่อีกครั้ง! <br><span class='neon-text-pink'>C-RANK</span>";
+                const punishments = ['ดันพื้น 5 ที', 'กระโดดตบ 10 ที', 'ลุกนั่ง 5 ครั้ง'];
+                const randomPunishment = punishments[Math.floor(Math.random() * punishments.length)];
+                
+                remark.innerHTML = `คุณหนีไม่พ้น... ถูกจระเข้งาบ! 🐊🩸<br><br>บทลงโทษของคุณคือ:<br><span class='text-4xl text-red-500 font-bold block mt-4'>${randomPunishment}</span>`;
+                remark.className = "text-xl text-zinc-300 mb-8";
             }
         }
 
