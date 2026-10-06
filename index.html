@@ -3,528 +3,433 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physics Battle Pro - High Contrast 50Q</title>
+    <title>Temp Converter: Neon Challenge</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Kanit', sans-serif;
-            background: #f1f5f9;
-            color: #0f172a;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 20px 0;
+            background-color: #050510;
+            color: #ffffff;
             overflow-x: hidden;
-            overflow-y: auto;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        
+        .neon-bg {
+            background: radial-gradient(circle at center, #101020 0%, #050510 100%);
         }
 
-        .game-viewport {
-            width: 95%;
-            max-width: 1400px;
-            margin: auto;
-            position: relative;
-            background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            border-radius: 20px;
-            border: 4px solid #0f172a;
+        .neon-box {
+            border: 2px solid #00f3ff;
+            box-shadow: 0 0 15px #00f3ff, inset 0 0 15px #00f3ff;
+            background: rgba(0, 243, 255, 0.05);
+            border-radius: 1rem;
         }
 
-        @media (min-width: 1024px) {
-            .game-viewport {
-                min-height: calc(1400px * 9 / 16);
-                aspect-ratio: 16 / 9;
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-                overflow-y: auto;
-            }
+        .neon-text-cyan {
+            color: #00f3ff;
+            text-shadow: 0 0 10px #00f3ff, 0 0 20px #00f3ff;
         }
 
-        .glass-panel {
-            background: #ffffff;
-            border: 2px solid #cbd5e1;
-            border-radius: 16px;
+        .neon-text-pink {
+            color: #ff0055;
+            text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055;
         }
 
-        .slot-machine-anim {
-            animation: slotScroll 0.3s ease-in-out infinite;
+        .neon-text-green {
+            color: #00ff66;
+            text-shadow: 0 0 10px #00ff66, 0 0 20px #00ff66;
         }
 
-        @keyframes slotScroll {
-            0% { transform: translateY(-20px); opacity: 0.5; }
-            50% { transform: translateY(0px); opacity: 1; }
-            100% { transform: translateY(20px); opacity: 0.5; }
+        .neon-btn-cyan {
+            background: transparent;
+            color: #00f3ff;
+            border: 2px solid #00f3ff;
+            box-shadow: 0 0 10px #00f3ff, inset 0 0 5px #00f3ff;
+            transition: all 0.2s ease-in-out;
+        }
+        .neon-btn-cyan:hover {
+            background: #00f3ff;
+            color: #000;
+            box-shadow: 0 0 25px #00f3ff, inset 0 0 10px #00f3ff;
         }
 
-        .turn-announcement {
-            animation: zoomInBounce 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        .neon-btn-danger {
+            background: transparent;
+            color: #ff0055;
+            border: 2px solid #ff0055;
+            box-shadow: 0 0 10px #ff0055, inset 0 0 5px #ff0055;
+            transition: all 0.2s ease-in-out;
+        }
+        .neon-btn-danger:hover {
+            background: #ff0055;
+            color: #fff;
+            box-shadow: 0 0 25px #ff0055, inset 0 0 10px #ff0055;
         }
 
-        @keyframes zoomInBounce {
-            0% { transform: scale(0); opacity: 0; }
-            70% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
+        .input-neon {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #00f3ff;
+            color: #fff;
+            box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.3);
         }
-
-        .active-team-glow {
-            border: 6px solid #2563eb !important;
-            background: #eff6ff;
-            transform: scale(1.02);
-        }
-
-        .timer-bar {
-            transition: width 1s linear;
-        }
-
-        .btn-option {
-            background: #ffffff;
-            border: 3px solid #0f172a;
-            color: #0f172a;
-            transition: all 0.2s;
-            text-align: left;
-        }
-
-        .btn-option:hover:not(:disabled) {
-            background: #f8fafc;
-            border-color: #2563eb;
-            color: #2563eb;
-        }
-
-        .bonus-input {
-            width: 60px;
-            background: #f1f5f9;
-            border: 2px solid #94a3b8;
-            border-radius: 6px;
-            text-align: center;
+        .input-neon:focus {
             outline: none;
-            font-size: 0.85rem;
-            color: #0f172a;
-            font-weight: bold;
+            border-color: #00ff66;
+            box-shadow: 0 0 15px #00ff66, inset 0 0 10px #00ff66;
         }
 
-        .score-change-anim {
-            animation: scorePop 0.5s ease-out;
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
         }
 
-        @keyframes scorePop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); color: #dc2626; }
-            100% { transform: scale(1); }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
 
-        @media (max-width: 1023px) {
-            body { padding: 10px; align-items: stretch; justify-content: flex-start; }
-            .game-viewport { width: 100%; min-height: 100vh; aspect-ratio: auto; border-radius: 0; }
+        .flash-green {
+            animation: flashGreen 0.5s ease-out;
+        }
+        @keyframes flashGreen {
+            0% { box-shadow: 0 0 50px #00ff66, inset 0 0 50px #00ff66; }
+            100% { box-shadow: 0 0 15px #00f3ff, inset 0 0 15px #00f3ff; }
         }
     </style>
 </head>
-<body class="p-0 sm:p-4">
+<body class="neon-bg min-h-screen flex items-center justify-center p-4">
 
-    <div class="game-viewport">
-        <!-- Setup Screen -->
-        <div id="setup-screen" class="flex-grow flex flex-col items-center justify-center p-6 sm:p-12 relative">
-            <div class="relative z-10 glass-panel p-8 sm:p-12 max-w-xl w-full text-center border-4 border-slate-900 shadow-2xl">
-                <h1 class="text-4xl sm:text-6xl font-black mb-4 uppercase tracking-tighter text-slate-900">PHYSICS BATTLE</h1>
-                <div class="bg-slate-100 p-4 rounded-xl mb-6 text-sm text-left border-2 border-slate-200">
-                    <p class="text-blue-700 font-bold">📏 คำอุปสรรค 10 | 🔢 เลขนัยสำคัญ 10 | 🌡️ อุณหภูมิ 10</p>
-                    <p class="text-pink-700 font-bold">🔥 ความร้อน Pt=mcΔT 10 | ⚡ ประสิทธิภาพ 10</p>
-                    <p class="text-slate-600 mt-2 italic text-[11px] font-bold uppercase">90 SECONDS | CORRECT +100 | WRONG -50 | TOTAL 50 Q</p>
-                </div>
-                
-                <div class="space-y-4 text-left">
-                    <div>
-                        <label class="text-xs font-black text-blue-600 uppercase ml-1">Team 1 Name</label>
-                        <input type="text" id="team1-name" value="ALPHA TEAM" class="w-full bg-white border-4 border-slate-900 rounded-xl p-3 outline-none focus:bg-blue-50 transition-all text-slate-900 font-bold">
-                    </div>
-                    <div>
-                        <label class="text-xs font-black text-pink-600 uppercase ml-1">Team 2 Name</label>
-                        <input type="text" id="team2-name" value="BETA SQUAD" class="w-full bg-white border-4 border-slate-900 rounded-xl p-3 outline-none focus:bg-pink-50 transition-all text-slate-900 font-bold">
-                    </div>
-                    <div>
-                        <label class="text-xs font-black text-emerald-600 uppercase ml-1">Team 3 Name</label>
-                        <input type="text" id="team3-name" value="GAMMA RAY" class="w-full bg-white border-4 border-slate-900 rounded-xl p-3 outline-none focus:bg-emerald-50 transition-all text-slate-900 font-bold">
-                    </div>
-                    <button onclick="startGame()" class="w-full bg-slate-900 text-white py-5 rounded-xl text-2xl font-black hover:bg-blue-700 active:scale-95 transition-all shadow-xl mt-4 uppercase">Start Battle</button>
-                </div>
-            </div>
+    <div id="app" class="w-full max-w-2xl relative">
+        
+        <!-- Start Screen -->
+        <div id="screen-start" class="text-center neon-box p-10 flex flex-col items-center">
+            <h1 class="text-4xl md:text-6xl font-orbitron font-bold neon-text-cyan mb-4 uppercase">Thermo<br>Cracker</h1>
+            <p class="text-lg md:text-xl text-gray-300 mb-8 font-light">
+                ท้าทายสมองกับเกมเปลี่ยนหน่วยอุณหภูมิ (C, F, R, K)<br>
+                โหมดจับเวลา 5 นาที ทำได้กี่ข้อ?<br>
+                <span class="text-sm text-pink-400 mt-2 block">*ใช้ 273 สำหรับหน่วย Kelvin (ไม่ใช่ 273.15)</span>
+            </p>
+            <button onclick="startGame()" class="neon-btn-cyan font-orbitron text-xl px-10 py-4 rounded-full font-bold uppercase tracking-wider">
+                Start Game
+            </button>
         </div>
 
         <!-- Game Screen -->
-        <div id="game-screen" class="hidden flex-grow flex flex-col p-4 sm:p-8">
-            <!-- Scoreboard -->
-            <div class="grid grid-cols-3 gap-6 mb-6">
-                <div id="score-card-0" class="bg-white p-4 text-center border-4 border-blue-600 rounded-2xl relative transition-all duration-300">
-                    <p id="disp-team1" class="text-xs font-black text-blue-700 uppercase truncate mb-1"></p>
-                    <p id="score-0" class="text-3xl sm:text-5xl font-black text-slate-900">0</p>
-                    <input type="number" placeholder="±" onkeydown="handleBonusKey(event, 0)" class="bonus-input mt-2 border-blue-200">
-                </div>
-                <div id="score-card-1" class="bg-white p-4 text-center border-4 border-pink-600 rounded-2xl relative transition-all duration-300">
-                    <p id="disp-team2" class="text-xs font-black text-pink-700 uppercase truncate mb-1"></p>
-                    <p id="score-1" class="text-3xl sm:text-5xl font-black text-slate-900">0</p>
-                    <input type="number" placeholder="±" onkeydown="handleBonusKey(event, 1)" class="bonus-input mt-2 border-pink-200">
-                </div>
-                <div id="score-card-2" class="bg-white p-4 text-center border-4 border-emerald-600 rounded-2xl relative transition-all duration-300">
-                    <p id="disp-team3" class="text-xs font-black text-emerald-700 uppercase truncate mb-1"></p>
-                    <p id="score-2" class="text-3xl sm:text-5xl font-black text-slate-900">0</p>
-                    <input type="number" placeholder="±" onkeydown="handleBonusKey(event, 2)" class="bonus-input mt-2 border-emerald-200">
-                </div>
+        <div id="screen-game" class="hidden neon-box p-6 md:p-10 flex flex-col items-center">
+            <!-- Header (Progress & Score) -->
+            <div class="w-full flex justify-between items-center mb-4 font-orbitron">
+                <div class="text-lg text-gray-300">Question: <span id="ui-progress" class="neon-text-cyan font-bold">1</span></div>
+                <div class="text-lg text-gray-300">Score: <span id="ui-score" class="neon-text-green font-bold">0</span></div>
             </div>
 
-            <!-- Header Info -->
-            <div class="flex justify-between items-end mb-2 px-2">
-                <div>
-                    <span id="category-tag" class="bg-slate-900 text-white px-3 py-1 rounded-md text-xs uppercase font-bold tracking-widest">CATEGORY</span>
-                    <h3 id="active-team-display" class="text-2xl sm:text-4xl font-black text-blue-700 mt-1 uppercase italic">TEAM NAME</h3>
-                </div>
-                <div class="text-right">
-                    <span id="timer-text" class="text-4xl sm:text-6xl font-black font-mono text-slate-900">90</span>
-                    <span class="text-xs block uppercase font-black text-red-600">Seconds</span>
-                </div>
+            <!-- Timer -->
+            <div class="w-full bg-gray-900 rounded-full h-4 mb-2 shadow-[0_0_5px_rgba(255,255,255,0.2)] overflow-hidden">
+                <div id="ui-timer-bar" class="h-full rounded-full transition-all duration-1000 ease-linear" style="width: 100%; background: #00ff66; box-shadow: 0 0 10px #00ff66;"></div>
             </div>
-            <div class="w-full bg-slate-200 h-5 rounded-full mb-6 overflow-hidden border-2 border-slate-300 shadow-inner">
-                <div id="timer-bar" class="timer-bar h-full bg-blue-600" style="width: 100%;"></div>
-            </div>
+            <div class="w-full text-right font-orbitron text-sm mb-6"><span id="ui-timer-text" class="text-green-400">300</span>s left</div>
 
             <!-- Question Area -->
-            <div id="main-question-container" class="flex-grow bg-white relative flex flex-col items-center justify-center p-6 sm:p-10 border-4 border-slate-900 rounded-3xl shadow-xl overflow-hidden">
-                <div id="question-loader" class="hidden text-center z-20">
-                    <div class="slot-machine-anim text-8xl mb-4">⚛️</div>
-                    <p class="text-3xl font-black text-slate-900 uppercase tracking-widest">Generating Question...</p>
+            <div class="text-center w-full mb-8" id="question-container">
+                <h2 class="text-2xl text-gray-400 mb-2 font-light">แปลงค่าอุณหภูมิต่อไปนี้</h2>
+                <div class="flex items-center justify-center gap-4 text-3xl md:text-5xl font-orbitron font-bold mt-4">
+                    <div id="ui-from-value" class="neon-text-pink">--</div>
+                    <div class="text-gray-500 text-2xl md:text-4xl">➔</div>
+                    <div id="ui-to-unit" class="neon-text-cyan">--</div>
                 </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="w-full flex flex-col items-center mb-6">
+                <input type="number" id="answer-input" step="any" placeholder="กรอกคำตอบที่นี่..." 
+                       class="input-neon w-full max-w-xs text-center text-2xl md:text-3xl py-3 rounded-lg font-orbitron mb-4 transition-all"
+                       onkeydown="if(event.key === 'Enter') checkAnswer()">
                 
-                <div id="question-content" class="w-full h-full flex flex-col z-10 transition-all duration-500">
-                    <div class="text-center mb-6 sm:mb-8">
-                        <span id="question-number" class="text-slate-500 text-sm font-black uppercase mb-2 block">Question X of 50</span>
-                        <p id="question-text" class="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight text-slate-900"></p>
-                    </div>
-                    
-                    <div id="options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-5xl mx-auto flex-grow items-center"></div>
+                <div id="feedback-msg" class="h-6 text-lg font-bold tracking-wider mb-4 opacity-0 transition-opacity">
+                    Feedback
+                </div>
+
+                <div class="w-full max-w-xs">
+                    <button onclick="checkAnswer()" class="neon-btn-cyan w-full font-orbitron text-lg py-3 rounded-lg font-bold">
+                        SUBMIT
+                    </button>
                 </div>
             </div>
+        </div>
 
-            <!-- Footer -->
-            <div class="mt-6 flex justify-between items-center h-16 shrink-0">
-                <button id="end-game-btn" onclick="openEndGameConfirm()" class="bg-white border-4 border-red-600 text-red-600 px-8 py-3 rounded-xl font-black text-sm transition-all uppercase hover:bg-red-600 hover:text-white">End Battle</button>
-                <button id="next-btn" onclick="prepareNextTurn()" class="hidden bg-slate-900 text-white h-full px-16 rounded-2xl font-black text-xl hover:bg-blue-600 transition-all shadow-2xl uppercase tracking-tighter">Next Team →</button>
+        <!-- End Screen -->
+        <div id="screen-end" class="hidden text-center neon-box p-10 flex flex-col items-center">
+            <h1 class="text-4xl md:text-5xl font-orbitron font-bold neon-text-cyan mb-2 uppercase">Time's Up!</h1>
+            <h2 class="text-2xl text-gray-300 mb-8">สรุปผลคะแนนของคุณ</h2>
+            
+            <div class="text-6xl md:text-8xl font-orbitron font-bold neon-text-green mb-8">
+                <span id="ui-final-score">0</span><span class="text-4xl text-gray-500"> ข้อ</span>
             </div>
-        </div>
-    </div>
+            
+            <p id="ui-remark" class="text-xl text-gray-300 mb-8 font-light"></p>
 
-    <!-- Confirm Modal -->
-    <div id="confirm-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/90 p-4 text-center">
-        <div class="bg-white p-10 max-w-sm w-full border-8 border-red-600 rounded-3xl">
-            <h3 class="text-3xl font-black mb-4 text-slate-900 uppercase italic leading-none">Finish Game?</h3>
-            <p class="text-slate-600 font-bold mb-8">ต้องการจบการแข่งขันและสรุปคะแนนทันทีใช่หรือไม่?</p>
-            <div class="flex flex-col gap-4">
-                <button onclick="confirmEndGame()" class="bg-red-600 py-4 rounded-xl font-black text-white text-xl uppercase">Yes, End Now!</button>
-                <button onclick="closeEndGameConfirm()" class="bg-slate-200 py-3 rounded-xl font-bold text-slate-700 uppercase">Cancel</button>
-            </div>
+            <button onclick="resetGame()" class="neon-btn-cyan font-orbitron text-xl px-10 py-4 rounded-full font-bold uppercase tracking-wider">
+                Play Again
+            </button>
         </div>
-    </div>
 
-    <!-- Turn Overlay -->
-    <div id="turn-overlay" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-white p-10 text-center border-[20px] border-slate-900">
-        <div class="turn-announcement">
-            <p class="text-2xl text-slate-500 font-black tracking-[0.3em] mb-4 uppercase">Coming Up Next</p>
-            <h2 id="overlay-team-name" class="text-7xl sm:text-[10rem] font-black mb-8 italic text-slate-900 uppercase leading-none">TEAM NAME</h2>
-            <div class="bg-blue-600 text-white inline-block px-10 py-4 text-3xl font-black rounded-full uppercase" id="overlay-category">CATEGORY</div>
-        </div>
-    </div>
-
-    <!-- Result Modal -->
-    <div id="result-modal" class="hidden fixed inset-0 bg-white z-[200] flex items-center justify-center p-6 overflow-y-auto">
-        <div class="max-w-4xl w-full text-center my-8">
-            <h2 class="text-6xl font-black mb-12 text-slate-900 uppercase tracking-tighter italic text-center">Competition Summary</h2>
-            <div id="final-scores" class="space-y-6 mb-12"></div>
-            <button onclick="location.reload()" class="bg-slate-900 text-white px-20 py-5 rounded-3xl font-black text-2xl uppercase hover:bg-blue-600 transition-all mx-auto block">Start Over</button>
-        </div>
     </div>
 
     <script>
-        let teams = [];
-        let currentTeamIndex = 0;
+        const GLOBAL_TIME_LIMIT = 300; // 5 นาที (300 วินาที)
+        
         let questions = [];
         let currentQuestionIndex = 0;
-        let timer;
-        let timeLeft = 90;
-        let isAnswered = false;
+        let score = 0;
+        let globalTimeLeft = 0;
+        let globalTimerInterval;
 
-        const punishments10 = ["ดันพื้น 10 ครั้ง", "ลุกนั่ง 10 ครั้ง", "วิ่งอยู่กับที่ 10 วินาที"];
-        const punishments20 = ["ดันพื้น 20 ครั้ง", "ลุกนั่ง 20 ครั้ง", "กระโดดตบ 20 ครั้ง"];
+        const UNITS_INFO = {
+            'C': '°C',
+            'F': '°F',
+            'R': '°R',
+            'K': 'K'
+        };
+
+        // DOM Elements
+        const screenStart = document.getElementById('screen-start');
+        const screenGame = document.getElementById('screen-game');
+        const screenEnd = document.getElementById('screen-end');
+        
+        const uiProgress = document.getElementById('ui-progress');
+        const uiScore = document.getElementById('ui-score');
+        const uiTimerBar = document.getElementById('ui-timer-bar');
+        const uiTimerText = document.getElementById('ui-timer-text');
+        
+        const uiFromValue = document.getElementById('ui-from-value');
+        const uiToUnit = document.getElementById('ui-to-unit');
+        const answerInput = document.getElementById('answer-input');
+        const feedbackMsg = document.getElementById('feedback-msg');
+        const questionContainer = document.getElementById('question-container');
 
         function generateQuestions() {
-            // 1. คำอุปสรรค 10
-            const prefixQ = [
-                { q: "5 กิโลเมตร (km) มีค่าเท่ากับกี่เมตร?", a: "5,000 m", o: ["500 m", "5,000 m", "50,000 m", "0.005 m"], cat: "📏 คำอุปสรรค" },
-                { q: "200 มิลลิกรัม (mg) มีค่าเท่ากับกี่กรัม?", a: "0.2 g", o: ["0.2 g", "2 g", "20 g", "200,000 g"], cat: "📏 คำอุปสรรค" },
-                { q: "3 เมกะวัตต์ (MW) มีค่าเท่ากับกี่วัตต์?", a: "3,000,000 W", o: ["3,000 W", "30,000 W", "3,000,000 W", "300 W"], cat: "📏 คำอุปสรรค" },
-                { q: "50 ไมโครแอมแปร์ (μA) มีค่าเท่ากับกี่แอมแปร์?", a: "0.00005 A", o: ["0.00005 A", "0.05 A", "0.005 A", "50,000 A"], cat: "📏 คำอุปสรรค" },
-                { q: "1.5 เซนติเมตร (cm) มีค่าเท่ากับกี่เมตร?", a: "0.015 m", o: ["0.15 m", "0.015 m", "150 m", "0.0015 m"], cat: "📏 คำอุปสรรค" },
-                { q: "800 นาโนวินาที (ns) มีค่าเท่ากับกี่วินาที?", a: "0.0000008 s", o: ["0.0008 s", "0.000008 s", "0.0000008 s", "0.8 s"], cat: "📏 คำอุปสรรค" },
-                { q: "4 กิกะเฮิรตซ์ (GHz) มีค่าเท่ากับกี่เฮิรตซ์?", a: "4 x 10^9 Hz", o: ["4 x 10^3 Hz", "4 x 10^6 Hz", "4 x 10^9 Hz", "4 x 10^12 Hz"], cat: "📏 คำอุปสรรค" },
-                { q: "0.5 มิลลิลิตร (mL) มีค่าเท่ากับกี่ลูกบาศก์เซนติเมตร (cm^3)?", a: "0.5 cm^3", o: ["0.5 cm^3", "5 cm^3", "50 cm^3", "500 cm^3"], cat: "📏 คำอุปสรรค" },
-                { q: "ค่า 'กิโล' (k) ตรงกับเลขยกกำลังใด?", a: "10^3", o: ["10^2", "10^3", "10^6", "10^-3"], cat: "📏 คำอุปสรรค" },
-                { q: "ค่า 'ไมโคร' (μ) ตรงกับเลขยกกำลังใด?", a: "10^-6", o: ["10^-3", "10^-6", "10^-9", "10^6"], cat: "📏 คำอุปสรรค" }
-            ];
+            let level1 = [];
+            let level2 = [];
+            let level3 = [];
+            
+            // 1. ระดับง่าย: ตัวเลขไม่ติดลบ ค่าน้อยๆ (x = 0 ถึง 15) 60 ข้อ
+            for (let i = 0; i < 60; i++) {
+                let x = Math.floor(Math.random() * 16); // 0 ถึง 15 (รับประกันว่าไม่ติดลบ)
+                let values = {
+                    'C': 5 * x,
+                    'F': 9 * x + 32,
+                    'R': 4 * x,
+                    'K': 5 * x + 273
+                };
+                
+                let units = ['C', 'F', 'R', 'K'].sort(() => Math.random() - 0.5);
+                let fromU = units[0];
+                let toU = units[1];
+                
+                level1.push({
+                    fromUnit: fromU,
+                    toUnit: toU,
+                    fromVal: values[fromU],
+                    toVal: values[toU]
+                });
+            }
 
-            // 2. เลขนัยสำคัญ 10
-            const sigFigQ = [
-                { q: "2.15 + 3.1 มีผลลัพธ์ตามหลักเลขนัยสำคัญคือเท่าใด?", a: "5.3", o: ["5.25", "5.3", "5.2", "5"], cat: "🔢 เลขนัยสำคัญ" },
-                { q: "10.0 x 2.0 มีผลลัพธ์ตามหลักเลขนัยสำคัญคือเท่าใด?", a: "20", o: ["20", "20.0", "20.00", "2"], cat: "🔢 เลขนัยสำคัญ" },
-                { q: "15.45 - 2.412 มีผลลัพธ์ตามหลักเลขนัยสำคัญคือเท่าใด?", a: "13.04", o: ["13.038", "13.04", "13.0", "13"], cat: "🔢 เลขนัยสำคัญ" },
-                { q: "25.0 / 5.00 มีผลลัพธ์ตามหลักเลขนัยสำคัญคือเท่าใด?", a: "5.00", o: ["5", "5.0", "5.00", "5.000"], cat: "🔢 เลขนัยสำคัญ" },
-                { q: "0.0050 มีเลขนัยสำคัญกี่ตัว?", a: "2 ตัว", o: ["1 ตัว", "2 ตัว", "3 ตัว", "4 ตัว"], cat: "🔢 เลขนัยสำคัญ" },
-                { q: "500.0 มีเลขนัยสำคัญกี่ตัว?", a: "4 ตัว", o: ["1 ตัว", "3 ตัว", "4 ตัว", "5 ตัว"], cat: "🔢 เลขนัยสำคัญ" },
-                { q: "1.20 x 10^3 มีเลขนัยสำคัญกี่ตัว?", a: "3 ตัว", o: ["2 ตัว", "3 ตัว", "5 ตัว", "6 ตัว"], cat: "🔢 เลขนัยสำคัญ" },
-                { q: "(2.00 x 3.0) / 1.50 ผลลัพธ์ควรมีเลขนัยสำคัญกี่ตัว?", a: "2 ตัว", o: ["1 ตัว", "2 ตัว", "3 ตัว", "ไม่มีข้อถูก"], cat: "🔢 เลขนัยสำคัญ" },
-                { q: "ค่า 4.555 เมื่อต้องการให้มีเลขนัยสำคัญ 2 ตัว จะปัดเป็นเท่าใด?", a: "4.6", o: ["4.5", "4.6", "4.56", "5.0"], cat: "🔢 เลขนัยสำคัญ" },
-                { q: "100 (ที่เป็นเลขจากการนับ) มีเลขนัยสำคัญกี่ตัว?", a: "อนันต์", o: ["1 ตัว", "3 ตัว", "อนันต์", "ไม่แน่นอน"], cat: "🔢 เลขนัยสำคัญ" }
-            ];
+            // 2. ระดับปานกลาง: ตัวเลขไม่ติดลบ ค่ามากขึ้น (x = 16 ถึง 60) 60 ข้อ
+            for (let i = 0; i < 60; i++) {
+                let x = Math.floor(Math.random() * 45) + 16; // 16 ถึง 60
+                let values = {
+                    'C': 5 * x,
+                    'F': 9 * x + 32,
+                    'R': 4 * x,
+                    'K': 5 * x + 273
+                };
+                
+                let units = ['C', 'F', 'R', 'K'].sort(() => Math.random() - 0.5);
+                let fromU = units[0];
+                let toU = units[1];
+                
+                level2.push({
+                    fromUnit: fromU,
+                    toUnit: toU,
+                    fromVal: values[fromU],
+                    toVal: values[toU]
+                });
+            }
 
-            // 3. อุณหภูมิ 10
-            const tempQ = [
-                { q: "25 °C มีค่าเท่ากับกี่เคลวิน (K)?", a: "298 K", o: ["248 K", "273 K", "298 K", "315 K"], cat: "🌡️ อุณหภูมิ" },
-                { q: "100 °C มีค่าเท่ากับกี่ฟาเรนไฮต์ (°F)?", a: "212 °F", o: ["100 °F", "180 °F", "212 °F", "273 °F"], cat: "🌡️ อุณหภูมิ" },
-                { q: "0 °C มีค่าเท่ากับกี่องศาโรเมอร์ (°R)?", a: "0 °R", o: ["0 °R", "32 °R", "80 °R", "273 °R"], cat: "🌡️ อุณหภูมิ" },
-                { q: "373 K มีค่าเท่ากับกี่ °C?", a: "100 °C", o: ["0 °C", "100 °C", "273 °C", "373 °C"], cat: "🌡️ อุณหภูมิ" },
-                { q: "80 °R มีค่าเท่ากับกี่ °C?", a: "100 °C", o: ["80 °C", "100 °C", "120 °C", "160 °C"], cat: "🌡️ อุณหภูมิ" },
-                { q: "น้ำเดือดที่อุณหภูมิกี่ °F?", a: "212 °F", o: ["100 °F", "180 °F", "212 °F", "373 °F"], cat: "🌡️ อุณหภูมิ" },
-                { q: "อุณหภูมิร่างกายปกติ 37 °C มีค่ากี่ K?", a: "310 K", o: ["273 K", "300 K", "310 K", "337 K"], cat: "🌡️ อุณหภูมิ" },
-                { q: "ถ้าอุณหภูมิเปลี่ยนไป 10 °C จะเปลี่ยนไปกี่ K?", a: "10 K", o: ["10 K", "273 K", "283 K", "0 K"], cat: "🌡️ อุณหภูมิ" },
-                { q: "อุณหภูมิศูนย์สัมบูรณ์คือหน่วยใด?", a: "0 K", o: ["0 °C", "0 °F", "0 K", "-273 K"], cat: "🌡️ อุณหภูมิ" },
-                { q: "20 °C มีค่ากี่ °R?", a: "16 °R", o: ["16 °R", "20 °R", "25 °R", "32 °R"], cat: "🌡️ อุณหภูมิ" }
-            ];
+            // 3. ระดับยาก: คำตอบเป็นทศนิยม .25, .5, .75 (ตัวเลขไม่ติดลบ) 80 ข้อ
+            for (let i = 0; i < 80; i++) {
+                let r;
+                do {
+                    r = Math.floor(Math.random() * 100) + 1; // 1 ถึง 100 (รับประกันว่าไม่ติดลบ)
+                } while (r % 4 === 0);
 
-            // 4. ความร้อนพื้นฐาน 10
-            const heatBasicQ = [
-                { q: "กาต้มน้ำ 1,050 W ต้มน้ำ 1 kg นาน 40 วินาที อุณหภูมิจะเพิ่มขึ้นกี่ °C?", a: "10°C", o: ["5°C", "10°C", "15°C", "20°C"], cat: "🔥 ความร้อน" },
-                { q: "ใช้เครื่องทำความร้อน 2,100 W ต้มน้ำ 2 kg นาน 1 นาที อุณหภูมิจะเพิ่มเท่าใด?", a: "15°C", o: ["10°C", "15°C", "20°C", "30°C"], cat: "🔥 ความร้อน" },
-                { q: "กา 2,000 W ต้มน้ำ 1 kg ให้ร้อนขึ้น 10°C ต้องใช้เวลากี่วินาที?", a: "21 วินาที", o: ["10 วินาที", "21 วินาที", "42 วินาที", "84 วินาที"], cat: "🔥 ความร้อน" },
-                { q: "ให้น้ำ 2 kg ร้อนขึ้น 20°C โดยใช้กา 4,000 W ต้องรอนานกี่วินาที?", a: "21 วินาที", o: ["21 วินาที", "42 วินาที", "60 วินาที", "84 วินาที"], cat: "🔥 ความร้อน" },
-                { q: "ต้มน้ำ 1 kg เพิ่ม 10°C ใน 20 วินาที กานี้มีกำลังกี่วัตต์?", a: "2,100 W", o: ["1,050 W", "2,100 W", "4,200 W", "8,400 W"], cat: "🔥 ความร้อน" },
-                { q: "น้ำ 0.2 kg เปลี่ยนไป 50°C ใน 1 นาที ต้องใช้กาขนาดกี่วัตต์?", a: "700 W", o: ["350 W", "700 W", "1,050 W", "2,100 W"], cat: "🔥 ความร้อน" },
-                { q: "กา 2,100 W ต้มน้ำนาน 20 วินาที อุณหภูมิเพิ่ม 10°C น้ำมีมวลกี่ kg?", a: "1.0 kg", o: ["0.5 kg", "1.0 kg", "1.5 kg", "2.0 kg"], cat: "🔥 ความร้อน" },
-                { q: "ใช้ความร้อน 840 W นาน 100 วินาที ทำให้น้ำเปลี่ยนไป 4°C น้ำมีมวลกี่ kg?", a: "5 kg", o: ["2 kg", "4 kg", "5 kg", "10 kg"], cat: "🔥 ความร้อน" },
-                { q: "กาต้มน้ำ 840 W ต้มน้ำ 0.5 kg นาน 50 วินาที อุณหภูมิจะสูงขึ้นกี่ °C?", a: "20°C", o: ["10°C", "15°C", "20°C", "25°C"], cat: "🔥 ความร้อน" },
-                { q: "กา 1,200 W ต้มน้ำ 1 kg จาก 30°C จนเดือด (100°C) ใช้เวลากี่วินาที?", a: "245 วินาที", o: ["210 วินาที", "245 วินาที", "300 วินาที", "420 วินาที"], cat: "🔥 ความร้อน" }
-            ];
+                let values = {
+                    'R': r,
+                    'C': r * 1.25,                  
+                    'F': (r * 2.25) + 32            
+                };
 
-            // 5. ความร้อนประสิทธิภาพ 10
-            const heatEffQ = [
-                { q: "กา 1,000 W ประสิทธิภาพ 84% ต้มน้ำ 1 kg นาน 50 วินาที อุณหภูมิจะเพิ่มขึ้นกี่องศา?", a: "10°C", o: ["5°C", "10°C", "15°C", "20°C"], cat: "⚡ ประสิทธิภาพ" },
-                { q: "กา 2,100 W ประสิทธิภาพ 80% ต้มน้ำ 2 kg นาน 100 วินาที อุณหภูมิจะเพิ่มขึ้นกี่องศา?", a: "20°C", o: ["15°C", "20°C", "25°C", "30°C"], cat: "⚡ ประสิทธิภาพ" },
-                { q: "ต้มน้ำ 0.5 kg ด้วยกา 1,200 W ประสิทธิภาพ 70% นาน 25 วินาที อุณหภูมิจะเพิ่มขึ้นเท่าใด?", a: "10°C", o: ["10°C", "15°C", "20°C", "25°C"], cat: "⚡ ประสิทธิภาพ" },
-                { q: "กา 3,000 W ประสิทธิภาพ 84% ต้มน้ำ 1.5 kg นานกี่วินาที อุณหภูมิถึงจะเพิ่มขึ้น 20°C?", a: "50 วินาที", o: ["42 วินาที", "50 วินาที", "60 วินาที", "84 วินาที"], cat: "⚡ ประสิทธิภาพ" },
-                { q: "ต้องการน้ำ 2 kg เพิ่ม 10°C ใน 50 วินาที โดยกามีประสิทธิภาพ 80% ต้องใช้กาขนาดกี่วัตต์?", a: "2,100 W", o: ["1,050 W", "1,500 W", "2,100 W", "4,200 W"], cat: "⚡ ประสิทธิภาพ" },
-                { q: "กา 840 W นาน 100 วินาที ทำให้น้ำ 1 kg อุณหภูมิเพิ่ม 16°C กานี้มีประสิทธิภาพกี่ %?", a: "80%", o: ["60%", "70%", "80%", "90%"], cat: "⚡ ประสิทธิภาพ" },
-                { q: "ต้มน้ำ 5 kg ด้วยกา 4,200 W ประสิทธิภาพ 90% นาน 100 วินาที อุณหภูมิจะเพิ่มกี่องศา?", a: "18°C", o: ["18°C", "20°C", "22°C", "25°C"], cat: "⚡ ประสิทธิภาพ" },
-                { q: "น้ำ 0.4 kg เพิ่ม 25°C ใน 50 วินาที เมื่อใช้กา 1,050 W ประสิทธิภาพการถ่ายโอนคือเท่าใด?", a: "80%", o: ["70%", "75%", "80%", "85%"], cat: "⚡ ประสิทธิภาพ" },
-                { q: "กา 1,000 W ประสิทธิภาพ 84% ต้มน้ำ 2 kg จาก 25°C เป็น 35°C ต้องใช้เวลากี่วินาที?", a: "100 วินาที", o: ["50 วินาที", "84 วินาที", "100 วินาที", "200 วินาที"], cat: "⚡ ประสิทธิภาพ" },
-                { q: "กา 2,400 W ประสิทธิภาพ 70% ต้มน้ำ 2 kg นาน 25 วินาที อุณหภูมิเพิ่มกี่องศา?", a: "5°C", o: ["5°C", "10°C", "15°C", "20°C"], cat: "⚡ ประสิทธิภาพ" }
-            ];
+                let hardTargets = ['C', 'F']; 
+                let toU = hardTargets[Math.floor(Math.random() * hardTargets.length)];
+                
+                level3.push({
+                    fromUnit: 'R',
+                    toUnit: toU,
+                    fromVal: values['R'],
+                    toVal: values[toU]
+                });
+            }
 
-            return [...prefixQ, ...sigFigQ, ...tempQ, ...heatBasicQ, ...heatEffQ].sort(() => Math.random() - 0.5);
+            // สลับโจทย์ภายในแต่ละระดับ เพื่อไม่ให้ซ้ำซาก
+            level1.sort(() => Math.random() - 0.5);
+            level2.sort(() => Math.random() - 0.5);
+            level3.sort(() => Math.random() - 0.5);
+
+            // นำมาต่อกันให้เรียงลำดับภาพรวมจาก ระดับง่าย -> ปานกลาง -> ยาก
+            return [...level1, ...level2, ...level3];
         }
 
         function startGame() {
-            teams = [
-                { name: document.getElementById('team1-name').value || "TEAM 1", score: 0 },
-                { name: document.getElementById('team2-name').value || "TEAM 2", score: 0 },
-                { name: document.getElementById('team3-name').value || "TEAM 3", score: 0 }
-            ];
-            document.getElementById('disp-team1').innerText = teams[0].name;
-            document.getElementById('disp-team2').innerText = teams[1].name;
-            document.getElementById('disp-team3').innerText = teams[2].name;
             questions = generateQuestions();
-            document.getElementById('setup-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            showTurnOverlay();
-        }
-
-        function openEndGameConfirm() { document.getElementById('confirm-modal').classList.remove('hidden'); }
-        function closeEndGameConfirm() { document.getElementById('confirm-modal').classList.add('hidden'); }
-        function confirmEndGame() { closeEndGameConfirm(); showFinalResult(); }
-
-        function showTurnOverlay() {
-            const q = questions[currentQuestionIndex];
-            const overlay = document.getElementById('turn-overlay');
-            const nameDisp = document.getElementById('overlay-team-name');
-            const catDisp = document.getElementById('overlay-category');
-            nameDisp.innerText = teams[currentTeamIndex].name;
-            catDisp.innerText = q.cat;
-            overlay.classList.remove('hidden');
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-                loadQuestion();
-            }, 1800);
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            screenStart.classList.add('hidden');
+            screenGame.classList.remove('hidden');
+            
+            startGlobalTimer();
+            loadQuestion();
         }
 
         function loadQuestion() {
-            if(currentQuestionIndex >= questions.length) { showFinalResult(); return; }
-            isAnswered = false;
-            const q = questions[currentQuestionIndex];
-            document.getElementById('next-btn').classList.add('hidden');
-            document.getElementById('question-content').classList.add('hidden');
-            document.getElementById('question-loader').classList.remove('hidden');
-            [0,1,2].forEach(i => {
-                const card = document.getElementById(`score-card-${i}`);
-                if(i === currentTeamIndex) card.classList.add('active-team-glow');
-                else card.classList.remove('active-team-glow');
-            });
-            document.getElementById('active-team-display').innerText = teams[currentTeamIndex].name;
-            document.getElementById('category-tag').innerText = q.cat;
-            setTimeout(() => {
-                document.getElementById('question-loader').classList.add('hidden');
-                document.getElementById('question-content').classList.remove('hidden');
-                document.getElementById('question-number').innerText = `Question ${currentQuestionIndex + 1} of 50`;
-                document.getElementById('question-text').innerHTML = q.q;
-                const grid = document.getElementById('options-grid');
-                grid.innerHTML = '';
-                const shuffledOptions = [...q.o].sort(() => Math.random() - 0.5);
-                shuffledOptions.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = "btn-option p-6 sm:p-8 rounded-2xl text-2xl sm:text-3xl font-black shadow-md leading-tight";
-                    btn.innerText = opt;
-                    btn.onclick = () => checkAnswer(opt, btn);
-                    grid.appendChild(btn);
-                });
-                startTimer();
-            }, 600);
+            let q = questions[currentQuestionIndex];
+            
+            uiProgress.innerText = `${currentQuestionIndex + 1}`;
+            uiScore.innerText = score;
+            
+            uiFromValue.innerText = `${q.fromVal} ${UNITS_INFO[q.fromUnit]}`;
+            uiToUnit.innerText = `? ${UNITS_INFO[q.toUnit]}`;
+            
+            answerInput.value = '';
+            answerInput.disabled = false;
+            answerInput.focus();
+            
+            feedbackMsg.style.opacity = '0';
         }
 
-        function checkAnswer(selected, btn) {
-            if(isAnswered) return;
-            isAnswered = true;
-            clearInterval(timer);
-            const q = questions[currentQuestionIndex];
-            const allBtns = document.querySelectorAll('#options-grid button');
-            if(selected === q.a) {
-                btn.classList.replace('bg-white', 'bg-green-600');
-                btn.classList.add('text-white', 'border-green-700');
-                updateTeamScore(currentTeamIndex, 100);
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            } else {
-                btn.classList.replace('bg-white', 'bg-red-600');
-                btn.classList.add('text-white', 'border-red-700');
-                updateTeamScore(currentTeamIndex, -50);
-                allBtns.forEach(b => { if(b.innerText === q.a) b.classList.add('bg-green-100', 'border-green-600', 'text-green-700'); });
-            }
-            document.getElementById('next-btn').classList.remove('hidden');
-        }
-
-        function handleTimeout() {
-            isAnswered = true;
-            const q = questions[currentQuestionIndex];
-            updateTeamScore(currentTeamIndex, -50);
-            const allBtns = document.querySelectorAll('#options-grid button');
-            allBtns.forEach(b => {
-                if(b.innerText === q.a) b.classList.add('bg-green-600', 'text-white');
-                else b.classList.add('opacity-30');
-            });
-            document.getElementById('next-btn').classList.remove('hidden');
-        }
-
-        function startTimer() {
-            clearInterval(timer);
-            timeLeft = 90;
+        function startGlobalTimer() {
+            clearInterval(globalTimerInterval);
+            globalTimeLeft = GLOBAL_TIME_LIMIT;
             updateTimerUI();
-            timer = setInterval(() => {
-                timeLeft--;
+            
+            globalTimerInterval = setInterval(() => {
+                globalTimeLeft--;
                 updateTimerUI();
-                if(timeLeft <= 0) { clearInterval(timer); if(!isAnswered) handleTimeout(); }
+                
+                if (globalTimeLeft <= 0) {
+                    clearInterval(globalTimerInterval);
+                    endGame();
+                }
             }, 1000);
         }
 
         function updateTimerUI() {
-            document.getElementById('timer-text').innerText = timeLeft;
-            document.getElementById('timer-bar').style.width = (timeLeft / 90) * 100 + '%';
-            if(timeLeft <= 15) {
-                document.getElementById('timer-text').className = 'text-4xl sm:text-6xl font-black font-mono text-red-600 animate-pulse';
-                document.getElementById('timer-bar').className = 'timer-bar h-full bg-red-600';
+            uiTimerText.innerText = globalTimeLeft;
+            let percentage = (globalTimeLeft / GLOBAL_TIME_LIMIT) * 100;
+            uiTimerBar.style.width = `${percentage}%`;
+
+            if (percentage > 50) {
+                uiTimerBar.style.background = '#00ff66';
+                uiTimerBar.style.boxShadow = '0 0 10px #00ff66';
+                uiTimerText.className = 'text-green-400';
+            } else if (percentage > 20) {
+                uiTimerBar.style.background = '#ffea00';
+                uiTimerBar.style.boxShadow = '0 0 10px #ffea00';
+                uiTimerText.className = 'text-yellow-400';
             } else {
-                document.getElementById('timer-text').className = 'text-4xl sm:text-6xl font-black font-mono text-slate-900';
-                document.getElementById('timer-bar').className = 'timer-bar h-full bg-blue-600';
+                uiTimerBar.style.background = '#ff0055';
+                uiTimerBar.style.boxShadow = '0 0 10px #ff0055';
+                uiTimerText.className = 'text-red-500 animate-pulse';
             }
         }
 
-        function updateTeamScore(index, change) {
-            teams[index].score += change;
-            const scoreEl = document.getElementById(`score-${index}`);
-            scoreEl.innerText = teams[index].score;
-            scoreEl.classList.remove('score-change-anim');
-            void scoreEl.offsetWidth; 
-            scoreEl.classList.add('score-change-anim');
-        }
-
-        function handleBonusKey(event, index) {
-            if (event.key === 'Enter') {
-                const bonusVal = parseInt(event.target.value);
-                if (!isNaN(bonusVal)) { updateTeamScore(index, bonusVal); event.target.value = ''; event.target.blur(); }
+        function checkAnswer() {
+            if (answerInput.disabled || answerInput.value === '') return;
+            
+            let userAns = parseFloat(answerInput.value);
+            let correctAns = questions[currentQuestionIndex].toVal;
+            
+            if (Math.abs(userAns - correctAns) < 0.01) {
+                // Correct!
+                score++;
+                uiScore.innerText = score;
+                showFeedback('ถูกต้อง!', 'success');
+                
+                questionContainer.classList.add('flash-green');
+                setTimeout(() => questionContainer.classList.remove('flash-green'), 500);
+                
+                answerInput.disabled = true;
+                setTimeout(() => {
+                    nextQuestion();
+                }, 700); // เปลี่ยนข้อไวขึ้นในโหมดจับเวลารวม
+            } else {
+                // Wrong!
+                showFeedback('ผิด! ลองใหม่', 'danger');
+                
+                questionContainer.classList.add('shake');
+                setTimeout(() => questionContainer.classList.remove('shake'), 500);
+                
+                answerInput.value = '';
+                answerInput.focus();
             }
         }
 
-        function prepareNextTurn() {
+        function showFeedback(text, type) {
+            feedbackMsg.innerText = text;
+            feedbackMsg.style.opacity = '1';
+            
+            if (type === 'success') {
+                feedbackMsg.className = 'h-6 text-lg font-bold tracking-wider mb-4 transition-opacity neon-text-green';
+            } else if (type === 'danger') {
+                feedbackMsg.className = 'h-6 text-lg font-bold tracking-wider mb-4 transition-opacity neon-text-pink';
+            } else {
+                feedbackMsg.className = 'h-6 text-lg font-bold tracking-wider mb-4 transition-opacity neon-text-cyan';
+            }
+        }
+
+        function nextQuestion() {
             currentQuestionIndex++;
-            currentTeamIndex = (currentTeamIndex + 1) % 3;
-            showTurnOverlay();
-        }
-
-        function showFinalResult() {
-            clearInterval(timer);
-            document.getElementById('result-modal').classList.remove('hidden');
-            const resDiv = document.getElementById('final-scores');
-            resDiv.innerHTML = '';
-            const sorted = [...teams].sort((a,b) => b.score - a.score);
-            const medals = ['🥇 Winner', '🥈 2nd Place', '🥉 3rd Place'];
-
-            sorted.forEach((t, i) => {
-                let punishment = null;
-                if (i === 1) punishment = punishments10[Math.floor(Math.random() * punishments10.length)];
-                else if (i === 2) punishment = punishments20[Math.floor(Math.random() * punishments20.length)];
-                resDiv.innerHTML += `
-                    <div class="flex flex-col sm:flex-row justify-between items-center p-8 rounded-3xl border-4 border-slate-900 transition-all ${i===0?'bg-yellow-50 scale-105 shadow-xl':''}">
-                        <div class="flex items-center gap-6">
-                            <span class="text-5xl sm:text-6xl">${medals[i].split(' ')[0]}</span>
-                            <div class="text-left">
-                                <p class="text-lg font-black uppercase text-slate-500">${medals[i].split(' ')[1]}</p>
-                                <p class="text-3xl sm:text-5xl font-black text-slate-900 uppercase">${t.name}</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-col items-center sm:items-end gap-2 mt-4 sm:mt-0">
-                            <span class="text-5xl font-black text-blue-700">${t.score} PTS</span>
-                            ${punishment ? `
-                                <div class="bg-red-100 border-4 border-red-600 px-6 py-2 rounded-xl text-red-700 font-black text-xl animate-bounce">
-                                    💀 Punishment: ${punishment}
-                                </div>
-                            ` : `
-                                <div class="bg-slate-900 text-white px-6 py-2 rounded-xl font-black text-sm uppercase">
-                                    👑 THE CHAMPION
-                                </div>
-                            `}
-                        </div>
-                    </div>
-                `;
-            });
-            const duration = 5 * 1000;
-            const end = Date.now() + duration;
-            (function frame() {
-                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors:['#000000', '#2563eb'] });
-                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors:['#000000', '#2563eb'] });
-                if (Date.now() < end) requestAnimationFrame(frame);
-            }());
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && document.getElementById('next-btn').offsetParent !== null) {
-                prepareNextTurn();
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                endGame();
             }
-        });
+        }
+
+        function endGame() {
+            clearInterval(globalTimerInterval);
+            screenGame.classList.add('hidden');
+            screenEnd.classList.remove('hidden');
+            
+            document.getElementById('ui-final-score').innerText = score;
+            
+            let remark = document.getElementById('ui-remark');
+            if (score >= 50) {
+                remark.innerHTML = "Godlike! คุณคือปรมาจารย์ด้านอุณหพลศาสตร์ตัวจริง <br><span class='neon-text-cyan'>S-RANK</span>";
+            } else if (score >= 35) {
+                remark.innerHTML = "ยอดเยี่ยมมาก! ความเร็วและความแม่นยำสูงมาก <br><span class='neon-text-green'>A-RANK</span>";
+            } else if (score >= 20) {
+                remark.innerHTML = "ทำได้ดี! แต่ยังสามารถเร่งความเร็วได้อีก <br><span class='text-yellow-400'>B-RANK</span>";
+            } else {
+                remark.innerHTML = "ต้องฝึกฝนเพิ่มเติมให้ไวขึ้น ลองใหม่อีกครั้ง! <br><span class='neon-text-pink'>C-RANK</span>";
+            }
+        }
+
+        function resetGame() {
+            screenEnd.classList.add('hidden');
+            screenStart.classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
