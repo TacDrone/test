@@ -377,7 +377,28 @@
                 }, 700); 
             } else {
                 // Wrong!
-                showFeedback('ผิด! ลองใหม่', 'danger');
+                score--;
+                uiScore.innerText = score;
+                showFeedback('ผิด! โดนหัก 1 คะแนน', 'danger');
+                
+                // Update survival bar backwards
+                const uiSurvivalText = document.getElementById('ui-survival-text');
+                const predatorGraphic = document.getElementById('predator-graphic');
+                const playerGraphic = document.getElementById('player-graphic');
+                
+                if(uiSurvivalText && predatorGraphic && playerGraphic) {
+                    uiSurvivalText.innerText = `${score} / 5` + (score >= 5 ? " (Safe!)" : "");
+                    
+                    // ป้องกันไม่ให้ Index ติดลบเวลาแสดงตำแหน่งนักว่ายน้ำ
+                    let posIndex = Math.max(0, Math.min(score, 5));
+                    playerGraphic.style.left = PLAYER_POSITIONS[posIndex];
+                    
+                    // ถ้าคะแนนตกลงมาต่ำกว่า 5 ให้จระเข้กลับมา และเปลี่ยนสีข้อความกลับ
+                    if (score < 5) {
+                        uiSurvivalText.className = 'text-blue-400 font-bold';
+                        predatorGraphic.style.transform = 'scaleX(-1)';
+                    }
+                }
                 
                 screenGame.classList.add('shake');
                 setTimeout(() => screenGame.classList.remove('shake'), 500);
