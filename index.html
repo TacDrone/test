@@ -104,6 +104,27 @@
             </div>
         </div>
 
+        <!-- กล่องสุ่มคะแนนพิเศษ (ซ่อนไว้ตอนเริ่ม) -->
+        <div id="special-box-screen" class="absolute inset-0 bg-gray-900/80 z-40 hidden flex-col items-center justify-center p-6 text-center backdrop-blur-sm rounded-3xl">
+            <div class="bg-white rounded-3xl p-8 shadow-2xl max-w-sm w-full animate-pop border-4 border-purple-300 transition-all duration-300">
+                <div class="text-6xl mb-4 animate-shake" id="special-box-icon">🎁</div>
+                <h3 class="text-2xl font-bold text-purple-700 mb-2" id="special-box-title">กล่องสุ่มคะแนน!</h3>
+                <p class="text-gray-600 mb-6 font-medium" id="special-box-desc">คุณตอบถูก 2 ข้อติดกัน!<br>เปิดกล่องเพื่อลุ้นรับคะแนนพิเศษ<br><span class="text-sm text-rose-500">(อาจจะได้บวก หรือโดนลบนะ!)</span></p>
+                
+                <!-- จุดแสดงตัวเลขรันตอนสุ่ม (ซ่อนไว้ก่อน) -->
+                <div class="text-5xl font-black mb-6 hidden" id="special-box-result"></div>
+
+                <div class="flex flex-col gap-3" id="special-box-buttons">
+                    <button onclick="startRollSpecialBox()" class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 text-xl">
+                        เปิดกล่องสุ่มเลย!
+                    </button>
+                    <button onclick="skipSpecialBox()" class="bg-gray-100 text-gray-600 font-bold py-2 px-6 rounded-full shadow hover:bg-gray-200 transform transition active:scale-95 text-lg">
+                        ไม่เอาดีกว่า ข้ามเลย
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div id="end-screen" class="absolute inset-0 bg-white z-50 hidden flex-col items-center justify-center p-6 text-center">
             <div class="text-6xl mb-4">🏆</div>
             <h2 class="text-3xl font-bold text-indigo-800 mb-2">จบภารกิจ!</h2>
@@ -123,6 +144,7 @@
         let score = 0;
         let timeLeft = 60;
         let timerInterval = null;
+        let consecutiveCorrect = 0; // ตัวแปรเก็บจำนวนการตอบถูกติดกัน
         
         // Audio Synth
         let synth;
@@ -323,12 +345,23 @@
             if (isCorrect) {
                 playSound('correct');
                 score += 2;
+                timeLeft += 10; // ตอบถูกบวก 10 วิ
+                consecutiveCorrect++; // เพิ่มตัวนับเมื่อตอบถูก
+                
+                // อัปเดตเวลาบนหน้าจอทันที
+                let m = Math.floor(Math.max(0, timeLeft) / 60).toString().padStart(2, '0');
+                let s = (Math.max(0, timeLeft) % 60).toString().padStart(2, '0');
+                document.getElementById('time-display').innerText = `${m}:${s}`;
+                
                 btnElement.classList.remove('bg-white', 'border-indigo-100', 'text-indigo-900');
                 btnElement.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600', 'shadow-lg');
-                showFloatingText(x, y, "+2", "text-emerald-500");
+                showFloatingText(x, y - 20, "+2", "text-emerald-500");
+                showFloatingText(x, y + 40, "+10 วิ", "text-cyan-500"); // แสดงข้อความเวลาที่เพิ่มขึ้น
             } else {
                 playSound('wrong');
                 score -= 5;
+                consecutiveCorrect = 0; // รีเซ็ตตัวนับหากตอบผิด
+                
                 btnElement.classList.remove('bg-white', 'border-indigo-100', 'text-indigo-900');
                 btnElement.classList.add('bg-rose-500', 'text-white', 'border-rose-600', 'shadow-lg');
                 document.getElementById('question-container').classList.add('animate-shake');
@@ -349,9 +382,125 @@
             // ดีเลย์เล็กน้อยให้เห็นสีว่าถูกหรือผิดก่อนเปลี่ยนข้อ
             setTimeout(() => {
                 document.getElementById('question-container').classList.remove('animate-shake');
+                
+                // ถ้านับครบ 2 ข้อติดกัน ให้แสดงกล่องสุ่ม
+                if (isCorrect && consecutiveCorrect >= 2) {
+                    consecutiveCorrect = 0; // รีเซ็ตการนับใหม่
+                    showSpecialBox();
+                } else {
+                    currentQuestionIndex++;
+                    renderQuestion();
+                }
+            }, 600); 
+        }
+
+        function showSpecialBox() {
+            clearInterval(timerInterval); // หยุดเวลาชั่วคราวให้ลุ้น
+            
+            // รีเซ็ตหน้าต่างสุ่มให้เป็นค่าเริ่มต้นก่อนแสดง
+            document.getElementById('special-box-icon').innerText = "🎁";
+            document.getElementById('special-box-icon').className = "text-6xl mb-4 animate-shake";
+            document.getElementById('special-box-title').innerText = "กล่องสุ่มคะแนน!";
+            document.getElementById('special-box-title').className = "text-2xl font-bold text-purple-700 mb-2";
+            document.getElementById('special-box-desc').style.display = "block";
+            document.getElementById('special-box-buttons').style.display = "flex";
+            document.getElementById('special-box-result').classList.add('hidden');
+            
+            const modal = document.getElementById('special-box-screen');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function skipSpecialBox() {
+            // ถ้าเลือกข้าม ปิดกล่องแล้วไปข้อต่อไปเลย
+            const modal = document.getElementById('special-box-screen');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            currentQuestionIndex++;
+            renderQuestion();
+            startTimer();
+        }
+
+        function startRollSpecialBox() {
+            // ซ่อนปุ่มและคำอธิบาย
+            document.getElementById('special-box-buttons').style.display = "none";
+            document.getElementById('special-box-desc').style.display = "none";
+            
+            // แสดงตัวเลขเอฟเฟกต์การสุ่ม
+            const resultEl = document.getElementById('special-box-result');
+            resultEl.classList.remove('hidden');
+            
+            const iconEl = document.getElementById('special-box-icon');
+            iconEl.classList.remove('animate-shake');
+            
+            let rollCount = 0;
+            const maxRolls = 25; // จำนวนเฟรมที่รันตัวเลขเปลี่ยนไปมา
+            const rollIntervalTime = 40; // ความเร็วในการรันตัวเลข (ms)
+
+            // เริ่มเล่นเอฟเฟกต์ตัวเลขวิ่ง
+            const rollInterval = setInterval(() => {
+                // สุ่มตัวเลขหลอกๆ เพื่อทำเอฟเฟกต์
+                const isTempPos = Math.random() > 0.5;
+                const tempPoints = isTempPos ? Math.floor(Math.random() * 11) + 10 : -(Math.floor(Math.random() * 6) + 5);
+                
+                resultEl.innerText = (tempPoints > 0 ? "+" : "") + tempPoints;
+                resultEl.className = `text-6xl font-black mb-6 ${tempPoints > 0 ? 'text-purple-500' : 'text-rose-500'}`;
+                iconEl.innerText = "🎲"; // เปลี่ยนไอคอนเป็นลูกเต๋าหมุน
+                
+                // เล่นเสียงติ๊กๆ ตอนรันตัวเลข (ถ้าเปิดเสียงได้)
+                if (audioInitialized && tickSynth) {
+                    tickSynth.triggerAttackRelease("C6", "64n");
+                }
+
+                rollCount++;
+                // เมื่อรันจบจำนวนที่ตั้งไว้ ให้หยุดและออกผลจริง
+                if (rollCount >= maxRolls) {
+                    clearInterval(rollInterval);
+                    finishSpecialBox();
+                }
+            }, rollIntervalTime);
+        }
+
+        function finishSpecialBox() {
+            // สุ่มคะแนนจริง (บวก +10 ถึง +20 หรือ โดนหัก -5 ถึง -10)
+            const isPositive = Math.random() > 0.5;
+            const points = isPositive ? Math.floor(Math.random() * 11) + 10 : -(Math.floor(Math.random() * 6) + 5);
+            
+            score += points;
+            document.getElementById('score-display').innerText = score;
+            
+            const resultEl = document.getElementById('special-box-result');
+            const iconEl = document.getElementById('special-box-icon');
+            const titleEl = document.getElementById('special-box-title');
+            
+            // แสดงคะแนนสุทธิ
+            resultEl.innerText = (points > 0 ? "+" : "") + points;
+            
+            if (isPositive) {
+                playSound('correct');
+                resultEl.className = 'text-6xl font-black mb-6 text-emerald-500 animate-pop';
+                iconEl.innerText = "🎉";
+                titleEl.innerText = "ยินดีด้วย!";
+                titleEl.className = "text-3xl font-bold text-emerald-600 mb-2 animate-pop";
+            } else {
+                playSound('wrong');
+                resultEl.className = 'text-6xl font-black mb-6 text-rose-500 animate-pop';
+                iconEl.innerText = "💥";
+                titleEl.innerText = "โชคร้ายโดนหัก!";
+                titleEl.className = "text-3xl font-bold text-rose-600 mb-2 animate-pop";
+            }
+            
+            // ให้เวลาดูผลลัพธ์ 1.5 วินาที แล้วปิดกล่อง เริ่มข้อถัดไป
+            setTimeout(() => {
+                const modal = document.getElementById('special-box-screen');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                
                 currentQuestionIndex++;
                 renderQuestion();
-            }, 600); 
+                startTimer();
+            }, 1500);
         }
 
         function showFloatingText(x, y, text, colorClass) {
@@ -367,8 +516,8 @@
         function startTimer() {
             timerInterval = setInterval(() => {
                 timeLeft--;
-                let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-                let s = (timeLeft % 60).toString().padStart(2, '0');
+                let m = Math.floor(Math.max(0, timeLeft) / 60).toString().padStart(2, '0');
+                let s = (Math.max(0, timeLeft) % 60).toString().padStart(2, '0');
                 document.getElementById('time-display').innerText = `${m}:${s}`;
                 
                 // ระบบเล่นเสียงนาฬิกาเดิน
@@ -382,7 +531,18 @@
                 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    endGame();
+                    
+                    // ปล่อยเวลาจบโดยไม่ได้กดตอบ = ลบ 10
+                    score -= 10;
+                    document.getElementById('score-display').innerText = score;
+                    const x = window.innerWidth / 2;
+                    const y = window.innerHeight / 2;
+                    showFloatingText(x, y, "-10 (หมดเวลา)", "text-orange-500");
+                    
+                    // หน่วงเวลาเล็กน้อยให้ผู้เล่นเห็นคะแนน -10 ลอยขึ้นก่อนจบเกม
+                    setTimeout(() => {
+                        endGame();
+                    }, 1000);
                 }
             }, 1000);
         }
