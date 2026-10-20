@@ -328,11 +328,11 @@
                 showFloatingText(x, y, "+2", "text-emerald-500");
             } else {
                 playSound('wrong');
-                score -= 1;
+                score -= 5;
                 btnElement.classList.remove('bg-white', 'border-indigo-100', 'text-indigo-900');
                 btnElement.classList.add('bg-rose-500', 'text-white', 'border-rose-600', 'shadow-lg');
                 document.getElementById('question-container').classList.add('animate-shake');
-                showFloatingText(x, y, "-1", "text-rose-500");
+                showFloatingText(x, y, "-5", "text-rose-500");
                 
                 // Highlight correct answer
                 const q = questions[currentQuestionIndex];
