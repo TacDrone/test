@@ -1,584 +1,1092 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ภารกิจพิชิตหน่วยความร้อน</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-
-    <style>
-        body {
-            font-family: 'Prompt', sans-serif;
-            touch-action: none; /* Prevent scroll while dragging on mobile */
-            overflow: hidden;
-            user-select: none; /* ป้องกันการคลุมดำข้อความเวลาลาก ซึ่งทำให้ลากค้าง */
-            -webkit-user-select: none;
-        }
-        
-        .dropzone {
-            transition: all 0.2s ease;
-        }
-        
-        .choice-card {
-            cursor: pointer;
-            transition: all 0.15s ease-in-out;
-        }
-        .choice-card:active {
-            transform: scale(0.95);
-        }
-        
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .animate-pop {
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-        }
-        .animate-shake {
-            animation: shake 0.4s ease-in-out;
-        }
-
-        @keyframes floatUpAnim {
-            0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50px) scale(1.5); opacity: 0; }
-        }
-        .float-up {
-            animation: floatUpAnim 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        
-        canvas {
-            touch-action: none;
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เกมคำนวณอุณหภูมิผสม (mcΔT = mcΔT)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Kanit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Neon Glow effects */
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.35);
+    }
+    .glow-amber {
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.45);
+    }
+    .glow-rose {
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.35);
+    }
+    /* Modal Backdrop Blur */
+    .backdrop-blur-custom {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    /* Pulsing animations */
+    @keyframes pulse-subtle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-50 to-cyan-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden">
 
-    <div class="w-full max-w-2xl bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col relative h-[90vh] max-h-[800px]">
-        
-        <!-- Header -->
-        <div class="bg-indigo-600 text-white p-4 text-center relative z-10 shadow-md">
-            <h1 class="text-xl md:text-2xl font-bold tracking-wide">🔥 ภารกิจพิชิตหน่วยความร้อน</h1>
-            <p class="text-indigo-200 text-sm mt-1">ทดสอบ Q=mcΔT และ Q=mL</p>
+  <!-- Background Ambient Lights -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -right-40 w-96 h-96 bg-rose-600/15 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- Header Section -->
+  <header class="relative z-10 w-full border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md px-4 py-3 sm:px-8">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+          <i class="fa-solid fa-flask-vial text-lg"></i>
         </div>
-
-        <div class="px-6 py-3 bg-indigo-50 flex justify-between items-center border-b border-indigo-100">
-            <div class="font-semibold text-indigo-800">
-                ข้อที่ <span id="current-question-num" class="text-lg">1</span> / 100
-            </div>
-            <div class="font-bold text-rose-600 bg-rose-100 px-4 py-1 rounded-full shadow-inner flex items-center gap-2">
-                ⏱️ <span id="time-display" class="font-mono text-lg">01:00</span>
-            </div>
-            <div class="font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full shadow-inner">
-                คะแนน: <span id="score-display">0</span>
-            </div>
+        <div>
+          <h1 class="font-bold text-lg sm:text-xl text-white tracking-wide flex items-center gap-2">
+            Thermal Equilibrium <span class="text-cyan-400 font-mono text-xs sm:text-sm bg-cyan-950/70 border border-cyan-800 px-2 py-0.5 rounded-full">mcΔT = mcΔT</span>
+          </h1>
+          <p class="text-xs text-slate-400">คำนวณสมดุลความร้อน ตัวเลขง่ายๆ 40 ข้อ (จับเวลา 2 นาที)</p>
         </div>
-        
-        <!-- Progress Line -->
-        <div class="w-full bg-gray-200 h-1.5">
-            <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-1.5 w-0 transition-all duration-300"></div>
-        </div>
-
-        <div id="game-screen" class="flex-1 flex flex-col p-4 md:p-6 overflow-hidden">
-            
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 text-center animate-pop shrink-0" id="question-container">
-                <!-- Question Text -->
-                <h2 id="question-text" class="text-lg md:text-xl font-medium text-gray-800 leading-relaxed">
-                    กำลังโหลดคำถาม...
-                </h2>
-            </div>
-
-            <!-- Choices Area -->
-            <div id="choices-container" class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 place-content-center h-full pb-4 overflow-y-auto">
-                <!-- Choices will be injected here -->
-            </div>
-        </div>
-
-        <!-- กล่องสุ่มคะแนนพิเศษ (ซ่อนไว้ตอนเริ่ม) -->
-        <div id="special-box-screen" class="absolute inset-0 bg-gray-900/80 z-40 hidden flex-col items-center justify-center p-6 text-center backdrop-blur-sm rounded-3xl">
-            <div class="bg-white rounded-3xl p-8 shadow-2xl max-w-sm w-full animate-pop border-4 border-purple-300 transition-all duration-300">
-                <div class="text-6xl mb-4 animate-shake" id="special-box-icon">🎁</div>
-                <h3 class="text-2xl font-bold text-purple-700 mb-2" id="special-box-title">กล่องสุ่มคะแนน!</h3>
-                <p class="text-gray-600 mb-6 font-medium" id="special-box-desc">คุณตอบถูก 2 ข้อติดกัน!<br>เปิดกล่องเพื่อลุ้นรับคะแนนพิเศษ<br><span class="text-sm text-rose-500">(อาจจะได้บวก หรือโดนลบนะ!)</span></p>
-                
-                <!-- จุดแสดงตัวเลขรันตอนสุ่ม (ซ่อนไว้ก่อน) -->
-                <div class="text-5xl font-black mb-6 hidden" id="special-box-result"></div>
-
-                <div class="flex flex-col gap-3" id="special-box-buttons">
-                    <button onclick="startRollSpecialBox()" class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 text-xl">
-                        เปิดกล่องสุ่มเลย!
-                    </button>
-                    <button onclick="skipSpecialBox()" class="bg-gray-100 text-gray-600 font-bold py-2 px-6 rounded-full shadow hover:bg-gray-200 transform transition active:scale-95 text-lg">
-                        ไม่เอาดีกว่า ข้ามเลย
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="end-screen" class="absolute inset-0 bg-white z-50 hidden flex-col items-center justify-center p-6 text-center">
-            <div class="text-6xl mb-4">🏆</div>
-            <h2 class="text-3xl font-bold text-indigo-800 mb-2">จบภารกิจ!</h2>
-            <p class="text-xl text-gray-600 mb-6">คะแนนของคุณคือ</p>
-            <div class="text-5xl font-black text-emerald-500 mb-8" id="final-score">0 คะแนน</div>
-            <p id="end-message" class="text-lg text-gray-700 mb-8 max-w-md"></p>
-            <button onclick="location.reload()" class="bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-bold py-3 px-10 rounded-full shadow-xl transform transition hover:scale-105 active:scale-95">
-                เล่นอีกครั้ง
-            </button>
-        </div>
+      </div>
+      
+      <!-- Audio Toggle -->
+      <button id="soundToggleBtn" class="p-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700">
+        <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+      </button>
     </div>
+  </header>
 
-    <script>
-        // State variables
-        let questions = [];
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let timeLeft = 60;
-        let timerInterval = null;
-        let consecutiveCorrect = 0; // ตัวแปรเก็บจำนวนการตอบถูกติดกัน
+  <!-- Main Container -->
+  <main class="relative z-10 max-w-4xl w-full mx-auto p-4 sm:p-6 flex-1 flex flex-col justify-center">
+
+    <!-- Screen 1: Start Screen -->
+    <section id="startScreen" class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-custom text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm font-medium mb-4">
+        <i class="fa-solid fa-bolt"></i> ฟิสิกส์ม.ปลาย & ม.ต้น คำนวณรวดเร็ว
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 mb-3">
+        สมรภูมิอุณหภูมิผสม
+      </h2>
+      <p class="text-slate-300 max-w-xl mx-auto text-sm sm:text-base mb-8">
+        กฎสมดุลความร้อน <span class="text-amber-400 font-semibold font-mono">Q_ลด = Q_เพิ่ม</span> คิดเลขในใจง่ายๆ แข่งกับเวลา 2 นาที พร้อมลุ้นระทึกกับวงล้อเสี่ยงดวง!
+      </p>
+
+      <!-- Rules Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-left">
+        <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-2xl">
+          <div class="text-emerald-400 text-lg mb-1"><i class="fa-solid fa-circle-check"></i> คะแนนคำตอบ</div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            • ตอบถูก: <span class="text-emerald-400 font-bold">+5 คะแนน</span><br>
+            • ตอบผิด: <span class="text-rose-400 font-bold">-10 คะแนน</span><br>
+            • จำนวนโจทย์: 40 ข้อ
+          </p>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-2xl">
+          <div class="text-amber-400 text-lg mb-1"><i class="fa-solid fa-dharmachakra"></i> วงล้อเสี่ยงโชค</div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            • ตอบถูกครบทุก <strong class="text-white">2 ข้อ</strong> สุ่มวงล้อ<br>
+            • <span class="text-emerald-400 font-bold">20%</span> ได้คะแนนบวกเพิ่ม<br>
+            • <span class="text-rose-400 font-bold">60%</span> โดนลบคะแนน!<br>
+            • <span class="text-cyan-400 font-bold">20%</span> กลางๆ (เสมอตัว)
+          </p>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-2xl">
+          <div class="text-cyan-400 text-lg mb-1"><i class="fa-solid fa-shield-halved"></i> การตัดสินใจ</div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            หากไม่อยากเสี่ยงดวงกับวงล้อ 60% ที่จะติดลบ สามารถเลือก <span class="text-amber-300 font-bold">"ข้ามไม่สุ่ม"</span> โดยยอมเสียเพียง <span class="text-rose-400 font-bold">5 คะแนน</span>!
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button id="startGameBtn" class="px-8 py-4 bg-gradient-to-r from-cyan-500 hover:from-cyan-400 to-blue-600 hover:to-blue-500 text-slate-950 font-extrabold text-lg rounded-2xl shadow-lg shadow-cyan-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-3 mx-auto">
+        <i class="fa-solid fa-play"></i> เริ่มเล่นเกมทันที (120 วิ)
+      </button>
+    </section>
+
+    <!-- Screen 2: Game Screen -->
+    <section id="gameScreen" class="hidden flex-col gap-4">
+      
+      <!-- Top HUD Stats -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-md">
+        <!-- Timer -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i class="fa-solid fa-stopwatch text-lg"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">เวลาที่เหลือ</div>
+            <div id="timerDisplay" class="font-mono text-xl sm:text-2xl font-bold text-amber-300">02:00</div>
+          </div>
+        </div>
+
+        <!-- Score -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <i class="fa-solid fa-trophy text-lg"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">คะแนนรวม</div>
+            <div id="scoreDisplay" class="font-mono text-xl sm:text-2xl font-bold text-cyan-300">0</div>
+          </div>
+        </div>
+
+        <!-- Question Counter -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <i class="fa-solid fa-list-check text-lg"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">ข้อที่</div>
+            <div class="font-mono text-xl sm:text-2xl font-bold text-indigo-300"><span id="currentQNum">1</span><span class="text-slate-500 text-sm">/40</span></div>
+          </div>
+        </div>
+
+        <!-- Wheel Trigger Meter -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+            <i class="fa-solid fa-dharmachakra text-lg"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">สะสมถูกวงล้อ</div>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span id="streakDot1" class="w-4 h-4 rounded-full border border-slate-600 bg-slate-800 transition-colors"></span>
+              <span id="streakDot2" class="w-4 h-4 rounded-full border border-slate-600 bg-slate-800 transition-colors"></span>
+              <span class="text-xs text-slate-400 ml-1 font-mono">(ทุก 2 ข้อ)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Time Progress Bar -->
+      <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700/50">
+        <div id="timeProgressBar" class="bg-gradient-to-r from-cyan-400 via-indigo-500 to-rose-500 h-full w-full transition-all duration-1000 ease-linear"></div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xl backdrop-blur-md relative overflow-hidden">
         
-        // Audio Synth
-        let synth;
-        let tickSynth;
-        let audioInitialized = false;
+        <!-- Header Tag -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="bg-indigo-500/20 text-indigo-300 text-xs font-semibold px-2.5 py-1 rounded-lg border border-indigo-500/30">
+              <i class="fa-solid fa-microscope mr-1"></i> สมดุลความร้อน (น้ำผสมน้ำ: c เท่ากัน)
+            </span>
+            <span id="difficultyBadge" class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded border border-slate-700">เลขคิดในใจ</span>
+          </div>
+          <div class="text-xs text-slate-400 font-mono">
+            m₁·(T₁ - T) = m₂·(T - T₂)
+          </div>
+        </div>
 
-        function initAudio() {
-            if (!audioInitialized) {
-                synth = new Tone.Synth().toDestination();
-                
-                // สร้างเสียงสำหรับนาฬิกาจับเวลา
-                tickSynth = new Tone.Synth({
-                    oscillator: { type: "square" },
-                    envelope: { attack: 0.005, decay: 0.05, sustain: 0, release: 0.01 }
-                }).toDestination();
-                tickSynth.volume.value = -12; // ปรับระดับเสียงนาฬิกาไม่ให้ดังรบกวนเกินไป
+        <!-- Question Text -->
+        <div class="min-h-[90px] flex items-center">
+          <h3 id="questionText" class="text-lg sm:text-xl font-medium text-slate-100 leading-relaxed">
+            กำลังโหลดโจทย์...
+          </h3>
+        </div>
 
-                audioInitialized = true;
-            }
-            if (Tone.context.state !== 'running') {
-                Tone.context.resume();
-            }
+        <!-- Choices Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6" id="choicesContainer">
+          <!-- Dynamically populated buttons -->
+        </div>
+
+        <!-- Feedback Bar -->
+        <div id="answerFeedback" class="hidden mt-5 p-3 rounded-xl text-sm font-medium flex items-center justify-between">
+          <div id="feedbackText" class="flex items-center gap-2"></div>
+          <div id="feedbackExplanation" class="text-xs opacity-90 font-mono"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 3: Game Over Screen -->
+    <section id="gameOverScreen" class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-custom text-center">
+      <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-3xl mx-auto mb-4">
+        <i class="fa-solid fa-flag-checkered"></i>
+      </div>
+      <h2 class="text-3xl font-extrabold text-white mb-1">จบการทดสอบ!</h2>
+      <p id="gameOverReason" class="text-sm text-slate-400 mb-6">เวลาหมด 120 วินาที</p>
+
+      <!-- Score Summary Display -->
+      <div class="max-w-md mx-auto bg-slate-800/70 border border-slate-700/80 rounded-2xl p-6 mb-6">
+        <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">คะแนนสุทธิของคุณ</div>
+        <div id="finalScoreDisplay" class="font-mono text-5xl font-black text-cyan-400 mb-4">0</div>
+        
+        <div class="grid grid-cols-3 gap-2 border-t border-slate-700/60 pt-4 text-center">
+          <div>
+            <div class="text-emerald-400 font-bold text-xl" id="finalCorrectCount">0</div>
+            <div class="text-xs text-slate-400">ตอบถูก (+5)</div>
+          </div>
+          <div>
+            <div class="text-rose-400 font-bold text-xl" id="finalWrongCount">0</div>
+            <div class="text-xs text-slate-400">ตอบผิด (-10)</div>
+          </div>
+          <div>
+            <div class="text-amber-400 font-bold text-xl" id="finalSpinCount">0</div>
+            <div class="text-xs text-slate-400">หมุนวงล้อ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <button id="restartGameBtn" class="w-full sm:w-auto px-6 py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate-right"></i> เล่นใหม่อีกครั้ง
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Lucky Wheel (Every 2 correct questions) -->
+  <div id="wheelModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-opacity duration-300 opacity-0">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-3xl p-6 sm:p-7 max-w-lg w-full text-center relative shadow-2xl glow-amber transform scale-95 transition-transform duration-300" id="wheelModalBox">
+      
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-semibold mb-2">
+        <i class="fa-solid fa-star animate-pulse"></i> ตอบถูกสะสมครบ 2 ข้อ! ปลดล็อกวงล้อเสี่ยงดวง
+      </div>
+      
+      <h3 class="text-2xl font-black text-white mb-1">วงล้อคะแนนปริศนา</h3>
+      <p class="text-xs text-slate-400 mb-4">
+        ความน่าจะเป็น: <span class="text-emerald-400 font-bold">20% ได้เพิ่ม</span> | <span class="text-rose-400 font-bold">60% ติดลบ!</span> | <span class="text-cyan-400 font-bold">20% กลางๆ</span>
+      </p>
+
+      <!-- Wheel Canvas Container -->
+      <div class="relative w-64 h-64 mx-auto my-2 flex items-center justify-center">
+        <!-- Pointer Arrow -->
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-amber-400 drop-shadow-md"></div>
+        <!-- Canvas -->
+        <canvas id="wheelCanvas" width="260" height="260" class="rounded-full shadow-inner"></canvas>
+        <!-- Center Cap -->
+        <div class="absolute w-12 h-12 rounded-full bg-slate-950 border-4 border-amber-400 flex items-center justify-center shadow-lg z-10 pointer-events-none">
+          <i class="fa-solid fa-dice text-amber-400 text-sm"></i>
+        </div>
+      </div>
+
+      <!-- Result Banner (Hidden initially) -->
+      <div id="wheelResultBanner" class="hidden my-3 p-3 rounded-xl text-center font-bold text-base transition-all"></div>
+
+      <!-- Wheel Controls -->
+      <div class="flex flex-col sm:flex-row gap-3 mt-4" id="wheelButtonsGroup">
+        <button id="spinWheelBtn" class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/30 transition-all flex items-center justify-center gap-2">
+          <i class="fa-solid fa-play"></i> หมุนวงล้อเสี่ยงโชค
+        </button>
+
+        <button id="skipWheelBtn" class="py-3 px-4 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-500/50 text-slate-300 hover:text-rose-300 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm">
+          <i class="fa-solid fa-forward-step"></i> ข้ามไม่สุ่ม (ยอมเสีย 5 คะแนน)
+        </button>
+      </div>
+
+      <!-- Continue button after wheel stopped -->
+      <button id="continueAfterWheelBtn" class="hidden w-full py-3 px-4 mt-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+        ทำโจทย์ข้อต่อไป <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="relative z-10 py-3 text-center text-xs text-slate-500 border-t border-slate-900 bg-slate-950/80">
+    สมการสมดุลความร้อน: <span class="font-mono text-slate-400">Q_สูญเสีย = Q_ได้รับ</span> | สร้างเพื่อการเรียนรู้ฟิสิกส์
+  </footer>
+
+  <!-- Sound Engine (Web Audio API) & Game Scripts -->
+  <script>
+    /* =========================================================
+       1. SYNTHESIZED SOUND SYSTEM (Web Audio API - No external files)
+       ========================================================= */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
         }
+      }
+      playCorrect() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.15); // G5
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+      playWrong() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+      playTick() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, now);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.04);
+      }
+      playFanfare() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const notes = [440, 554.37, 659.25, 880];
+        notes.forEach((freq, idx) => {
+          const now = this.ctx.currentTime + (idx * 0.08);
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        });
+      }
+      playPenalty() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(130, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.4);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.45);
+      }
+    }
 
-        function playSound(type) {
-            if (!synth) return;
-            if (type === 'correct') {
-                synth.triggerAttackRelease("C5", "8n");
-                setTimeout(() => synth.triggerAttackRelease("E5", "8n"), 150);
-            } else if (type === 'wrong') {
-                synth.triggerAttackRelease("G3", "8n");
-            }
-        }
+    const sound = new SoundEngine();
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const soundIcon = document.getElementById('soundIcon');
 
-        // Helper for generating choices
-        function makeChoices(correctVal, unit, d1, d2, d3) {
-            // สร้างตัวเลือก 4 ข้อ (สุ่มสลับตำแหน่ง) พร้อมใส่ลูกน้ำในตัวเลข
-            let opts = [
-                { text: correctVal.toLocaleString() + " " + unit, isCorrect: true },
-                { text: d1.toLocaleString() + " " + unit, isCorrect: false },
-                { text: d2.toLocaleString() + " " + unit, isCorrect: false },
-                { text: d3.toLocaleString() + " " + unit, isCorrect: false }
-            ];
-            return opts.sort(() => Math.random() - 0.5);
-        }
+    soundToggleBtn.addEventListener('click', () => {
+      sound.enabled = !sound.enabled;
+      if (sound.enabled) {
+        soundIcon.className = "fa-solid fa-volume-high";
+        soundToggleBtn.classList.remove('text-rose-400');
+        soundToggleBtn.classList.add('text-slate-300');
+      } else {
+        soundIcon.className = "fa-solid fa-volume-xmark";
+        soundToggleBtn.classList.remove('text-slate-300');
+        soundToggleBtn.classList.add('text-rose-400');
+      }
+    });
 
-        // ฟังก์ชันสร้างคำถาม 100 ข้อ ครอบคลุมจุดดักเรื่องหน่วย
-        function generateQuestions() {
-            let pool = [];
-            
-            // S1: m(kg), c(J/kg°C) -> Match (5 items)
-            const s1_m = [1, 1.5, 2, 3, 5];
-            const s1_dt = [10, 20, 30, 40, 50];
-            for(let i=0; i<5; i++){
-                let m = s1_m[i]; let dt = s1_dt[i]; let c = 4200;
-                let ans = m * c * dt;
-                pool.push({
-                    text: `น้ำมวล <b class="text-blue-600">${m} kg</b> มีอุณหภูมิเพิ่มขึ้น <b class="text-red-500">${dt} °C</b><br><span class="text-sm text-gray-500 mt-2 block">(กำหนด c = 4200 J/kg·°C)</span>`,
-                    options: makeChoices(ans, "J", (m/1000)*c*dt, (m*1000)*c*dt, m*dt)
-                });
-            }
-
-            // S2: m(g), c(J/kg°C) -> Trap! Convert m to kg (5 items)
-            const s2_m = [100, 200, 300, 400, 500];
-            const s2_dt = [10, 15, 20, 25, 30];
-            for(let i=0; i<5; i++){
-                let m = s2_m[i]; let dt = s2_dt[i]; let c = 4200;
-                let ans = (m / 1000) * c * dt;
-                pool.push({
-                    text: `น้ำมวล <b class="text-blue-600">${m} g</b> มีอุณหภูมิลดลง <b class="text-red-500">${dt} °C</b><br><span class="text-sm text-gray-500 mt-2 block">(กำหนด c = 4200 J/kg·°C)</span>`,
-                    options: makeChoices(ans, "J", m*c*dt, (m*1000)*c*dt, (m/100)*c*dt)
-                });
-            }
-
-            // S3: m(kg), c(cal/g°C) -> Trap! Convert m to g (5 items)
-            const s3_m = [0.1, 0.2, 0.5, 1, 2];
-            const s3_dt = [10, 20, 50, 80, 100];
-            for(let i=0; i<5; i++){
-                let m = s3_m[i]; let dt = s3_dt[i]; let c = 1;
-                let ans = (m * 1000) * c * dt;
-                pool.push({
-                    text: `น้ำมวล <b class="text-blue-600">${m} kg</b> อุณหภูมิเพิ่มขึ้น <b class="text-red-500">${dt} °C</b><br><span class="text-sm text-gray-500 mt-2 block">(กำหนด c = 1 cal/g·°C)</span>`,
-                    options: makeChoices(ans, "cal", m*c*dt, (m/1000)*c*dt, m*c)
-                });
-            }
-
-            // S4: m(g), c(cal/g°C) -> Match (5 items)
-            const s4_m = [50, 100, 150, 200, 250];
-            const s4_c = [0.5, 0.5, 1, 1, 0.5]; 
-            for(let i=0; i<5; i++){
-                let m = s4_m[i]; let dt = s3_dt[i]; let c = s4_c[i];
-                let ans = m * c * dt;
-                pool.push({
-                    text: `สสารมวล <b class="text-blue-600">${m} g</b> อุณหภูมิเปลี่ยนไป <b class="text-red-500">${dt} °C</b><br><span class="text-sm text-gray-500 mt-2 block">(กำหนด c = ${c} cal/g·°C)</span>`,
-                    options: makeChoices(ans, "cal", (m/1000)*c*dt, (m*1000)*c*dt, m*dt)
-                });
-            }
-
-            // S5: m(kg), L(kJ/kg) -> Match (5 items)
-            const s5_m = [1, 2, 3, 4, 5];
-            for(let i=0; i<5; i++){
-                let m = s5_m[i]; let L = 2256;
-                let ans = m * L;
-                pool.push({
-                    text: `น้ำเดือดกลายเป็นไอ มวล <b class="text-blue-600">${m} kg</b><br><span class="text-sm text-gray-500 mt-2 block">(กำหนดความร้อนแฝง L = 2256 kJ/kg)</span>`,
-                    options: makeChoices(ans, "kJ", (m/1000)*L, (m*1000)*L, m)
-                });
-            }
-
-            // S6: m(g), L(kJ/kg) -> Trap! (5 items)
-            const s6_m = [100, 200, 250, 400, 500];
-            for(let i=0; i<5; i++){
-                let m = s6_m[i]; let L = 333;
-                let ans = (m / 1000) * L;
-                pool.push({
-                    text: `น้ำแข็งหลอมเหลว มวล <b class="text-blue-600">${m} g</b><br><span class="text-sm text-gray-500 mt-2 block">(กำหนดความร้อนแฝง L = 333 kJ/kg)</span>`,
-                    options: makeChoices(ans, "kJ", m*L, (m*1000)*L, (m/100)*L)
-                });
-            }
-
-            // S7: m(kg), L(cal/g) -> Trap! (5 items)
-            const s7_m = [0.1, 0.2, 0.3, 0.5, 1];
-            for(let i=0; i<5; i++){
-                let m = s7_m[i]; let L = 80;
-                let ans = (m * 1000) * L;
-                pool.push({
-                    text: `น้ำแข็งละลายหมด มวล <b class="text-blue-600">${m} kg</b><br><span class="text-sm text-gray-500 mt-2 block">(กำหนด L = 80 cal/g)</span>`,
-                    options: makeChoices(ans, "cal", m*L, (m/1000)*L, m)
-                });
-            }
-
-            // S8: m(g), L(cal/g) -> Match (5 items)
-            const s8_m = [10, 20, 50, 100, 200];
-            for(let i=0; i<5; i++){
-                let m = s8_m[i]; let L = 540;
-                let ans = m * L;
-                pool.push({
-                    text: `น้ำเดือดกลายเป็นไอ มวล <b class="text-blue-600">${m} g</b><br><span class="text-sm text-gray-500 mt-2 block">(กำหนด L = 540 cal/g)</span>`,
-                    options: makeChoices(ans, "cal", (m/1000)*L, (m*1000)*L, m)
-                });
-            }
-
-            // ขยายจำนวนข้อให้ครบ 100 ข้อจากการสุ่มโจทย์ในคลัง
-            const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
-            let shuffledPool = shuffle(pool);
-            let finalPool = [];
-            while(finalPool.length < 100) {
-                finalPool = finalPool.concat(shuffledPool);
-            }
-            return finalPool.slice(0, 100);
-        }
-
-        function renderQuestion() {
-            if (currentQuestionIndex >= questions.length) {
-                endGame();
-                return;
-            }
-
-            const q = questions[currentQuestionIndex];
-            
-            // Update UI texts
-            document.getElementById('current-question-num').innerText = currentQuestionIndex + 1;
-            document.getElementById('question-text').innerHTML = q.text;
-            document.getElementById('progress-bar').style.width = `${(currentQuestionIndex / questions.length) * 100}%`;
-            
-            // Render options
-            const choicesContainer = document.getElementById('choices-container');
-            choicesContainer.innerHTML = '';
-            
-            q.options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = "choice-card w-full h-full bg-white border-2 border-indigo-100 hover:border-indigo-400 hover:bg-indigo-50 text-indigo-900 font-bold py-6 px-4 rounded-2xl shadow-sm text-lg md:text-xl flex items-center justify-center transition-colors";
-                btn.innerText = opt.text;
-                btn.onclick = () => checkAnswer(opt.isCorrect, btn);
-                choicesContainer.appendChild(btn);
-            });
-
-            // Re-trigger animation
-            const qContainer = document.getElementById('question-container');
-            qContainer.classList.remove('animate-pop');
-            void qContainer.offsetWidth; // trigger reflow
-            qContainer.classList.add('animate-pop');
-        }
-
-        function checkAnswer(isCorrect, btnElement) {
-            initAudio();
-            
-            // Disable all buttons to prevent double click
-            const buttons = document.querySelectorAll('.choice-card');
-            buttons.forEach(b => {
-                b.onclick = null;
-                b.classList.remove('hover:border-indigo-400', 'hover:bg-indigo-50');
-            });
-
-            const x = window.innerWidth / 2;
-            const y = window.innerHeight / 2;
-
-            if (isCorrect) {
-                playSound('correct');
-                score += 2;
-                timeLeft += 10; // ตอบถูกบวก 10 วิ
-                consecutiveCorrect++; // เพิ่มตัวนับเมื่อตอบถูก
-                
-                // อัปเดตเวลาบนหน้าจอทันที
-                let m = Math.floor(Math.max(0, timeLeft) / 60).toString().padStart(2, '0');
-                let s = (Math.max(0, timeLeft) % 60).toString().padStart(2, '0');
-                document.getElementById('time-display').innerText = `${m}:${s}`;
-                
-                btnElement.classList.remove('bg-white', 'border-indigo-100', 'text-indigo-900');
-                btnElement.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600', 'shadow-lg');
-                showFloatingText(x, y - 20, "+2", "text-emerald-500");
-                showFloatingText(x, y + 40, "+10 วิ", "text-cyan-500"); // แสดงข้อความเวลาที่เพิ่มขึ้น
-            } else {
-                playSound('wrong');
-                score -= 5;
-                consecutiveCorrect = 0; // รีเซ็ตตัวนับหากตอบผิด
-                
-                btnElement.classList.remove('bg-white', 'border-indigo-100', 'text-indigo-900');
-                btnElement.classList.add('bg-rose-500', 'text-white', 'border-rose-600', 'shadow-lg');
-                document.getElementById('question-container').classList.add('animate-shake');
-                showFloatingText(x, y, "-5", "text-rose-500");
-                
-                // Highlight correct answer
-                const q = questions[currentQuestionIndex];
-                buttons.forEach((b, index) => {
-                    if(q.options[index].isCorrect) {
-                        b.classList.remove('bg-white', 'border-indigo-100', 'text-indigo-900');
-                        b.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-800');
-                    }
-                });
-            }
-            
-            document.getElementById('score-display').innerText = score;
-
-            // ดีเลย์เล็กน้อยให้เห็นสีว่าถูกหรือผิดก่อนเปลี่ยนข้อ
-            setTimeout(() => {
-                document.getElementById('question-container').classList.remove('animate-shake');
-                
-                // ถ้านับครบ 2 ข้อติดกัน ให้แสดงกล่องสุ่ม
-                if (isCorrect && consecutiveCorrect >= 2) {
-                    consecutiveCorrect = 0; // รีเซ็ตการนับใหม่
-                    showSpecialBox();
-                } else {
-                    currentQuestionIndex++;
-                    renderQuestion();
-                }
-            }, 600); 
-        }
-
-        function showSpecialBox() {
-            clearInterval(timerInterval); // หยุดเวลาชั่วคราวให้ลุ้น
-            
-            // รีเซ็ตหน้าต่างสุ่มให้เป็นค่าเริ่มต้นก่อนแสดง
-            document.getElementById('special-box-icon').innerText = "🎁";
-            document.getElementById('special-box-icon').className = "text-6xl mb-4 animate-shake";
-            document.getElementById('special-box-title').innerText = "กล่องสุ่มคะแนน!";
-            document.getElementById('special-box-title').className = "text-2xl font-bold text-purple-700 mb-2";
-            document.getElementById('special-box-desc').style.display = "block";
-            document.getElementById('special-box-buttons').style.display = "flex";
-            document.getElementById('special-box-result').classList.add('hidden');
-            
-            const modal = document.getElementById('special-box-screen');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function skipSpecialBox() {
-            // ถ้าเลือกข้าม ปิดกล่องแล้วไปข้อต่อไปเลย
-            const modal = document.getElementById('special-box-screen');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            
-            currentQuestionIndex++;
-            renderQuestion();
-            startTimer();
-        }
-
-        function startRollSpecialBox() {
-            // ซ่อนปุ่มและคำอธิบาย
-            document.getElementById('special-box-buttons').style.display = "none";
-            document.getElementById('special-box-desc').style.display = "none";
-            
-            // แสดงตัวเลขเอฟเฟกต์การสุ่ม
-            const resultEl = document.getElementById('special-box-result');
-            resultEl.classList.remove('hidden');
-            
-            const iconEl = document.getElementById('special-box-icon');
-            iconEl.classList.remove('animate-shake');
-            
-            let rollCount = 0;
-            const maxRolls = 25; // จำนวนเฟรมที่รันตัวเลขเปลี่ยนไปมา
-            const rollIntervalTime = 40; // ความเร็วในการรันตัวเลข (ms)
-
-            // เริ่มเล่นเอฟเฟกต์ตัวเลขวิ่ง
-            const rollInterval = setInterval(() => {
-                // สุ่มตัวเลขหลอกๆ เพื่อทำเอฟเฟกต์
-                const isTempPos = Math.random() > 0.5;
-                const tempPoints = isTempPos ? Math.floor(Math.random() * 11) + 10 : -(Math.floor(Math.random() * 6) + 5);
-                
-                resultEl.innerText = (tempPoints > 0 ? "+" : "") + tempPoints;
-                resultEl.className = `text-6xl font-black mb-6 ${tempPoints > 0 ? 'text-purple-500' : 'text-rose-500'}`;
-                iconEl.innerText = "🎲"; // เปลี่ยนไอคอนเป็นลูกเต๋าหมุน
-                
-                // เล่นเสียงติ๊กๆ ตอนรันตัวเลข (ถ้าเปิดเสียงได้)
-                if (audioInitialized && tickSynth) {
-                    tickSynth.triggerAttackRelease("C6", "64n");
-                }
-
-                rollCount++;
-                // เมื่อรันจบจำนวนที่ตั้งไว้ ให้หยุดและออกผลจริง
-                if (rollCount >= maxRolls) {
-                    clearInterval(rollInterval);
-                    finishSpecialBox();
-                }
-            }, rollIntervalTime);
-        }
-
-        function finishSpecialBox() {
-            // สุ่มคะแนนจริง (บวก +10 ถึง +20 หรือ โดนหัก -5 ถึง -10)
-            const isPositive = Math.random() > 0.5;
-            const points = isPositive ? Math.floor(Math.random() * 11) + 10 : -(Math.floor(Math.random() * 6) + 5);
-            
-            score += points;
-            document.getElementById('score-display').innerText = score;
-            
-            const resultEl = document.getElementById('special-box-result');
-            const iconEl = document.getElementById('special-box-icon');
-            const titleEl = document.getElementById('special-box-title');
-            
-            // แสดงคะแนนสุทธิ
-            resultEl.innerText = (points > 0 ? "+" : "") + points;
-            
-            if (isPositive) {
-                playSound('correct');
-                resultEl.className = 'text-6xl font-black mb-6 text-emerald-500 animate-pop';
-                iconEl.innerText = "🎉";
-                titleEl.innerText = "ยินดีด้วย!";
-                titleEl.className = "text-3xl font-bold text-emerald-600 mb-2 animate-pop";
-            } else {
-                playSound('wrong');
-                resultEl.className = 'text-6xl font-black mb-6 text-rose-500 animate-pop';
-                iconEl.innerText = "💥";
-                titleEl.innerText = "โชคร้ายโดนหัก!";
-                titleEl.className = "text-3xl font-bold text-rose-600 mb-2 animate-pop";
-            }
-            
-            // ให้เวลาดูผลลัพธ์ 1.5 วินาที แล้วปิดกล่อง เริ่มข้อถัดไป
-            setTimeout(() => {
-                const modal = document.getElementById('special-box-screen');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                
-                currentQuestionIndex++;
-                renderQuestion();
-                startTimer();
-            }, 1500);
-        }
-
-        function showFloatingText(x, y, text, colorClass) {
-            const el = document.createElement('div');
-            el.className = `fixed font-black text-6xl z-50 pointer-events-none float-up ${colorClass} drop-shadow-xl`;
-            el.innerText = text;
-            el.style.left = `${x}px`;
-            el.style.top = `${y}px`;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 800);
-        }
-
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                let m = Math.floor(Math.max(0, timeLeft) / 60).toString().padStart(2, '0');
-                let s = (Math.max(0, timeLeft) % 60).toString().padStart(2, '0');
-                document.getElementById('time-display').innerText = `${m}:${s}`;
-                
-                // ระบบเล่นเสียงนาฬิกาเดิน
-                if (audioInitialized && timeLeft > 0) {
-                    if (timeLeft <= 10) {
-                        tickSynth.triggerAttackRelease("C5", "32n"); // เสียงแหลมขึ้นเมื่อเหลือ 10 วิสุดท้าย
-                    } else {
-                        tickSynth.triggerAttackRelease("C4", "64n"); // เสียงปกติ
-                    }
-                }
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    
-                    // ปล่อยเวลาจบโดยไม่ได้กดตอบ = ลบ 10
-                    score -= 10;
-                    document.getElementById('score-display').innerText = score;
-                    const x = window.innerWidth / 2;
-                    const y = window.innerHeight / 2;
-                    showFloatingText(x, y, "-10 (หมดเวลา)", "text-orange-500");
-                    
-                    // หน่วงเวลาเล็กน้อยให้ผู้เล่นเห็นคะแนน -10 ลอยขึ้นก่อนจบเกม
-                    setTimeout(() => {
-                        endGame();
-                    }, 1000);
-                }
-            }, 1000);
-        }
-
-        function endGame() {
-            document.getElementById('game-screen').classList.add('hidden');
-            if (timerInterval) clearInterval(timerInterval);
-            
-            const endScreen = document.getElementById('end-screen');
-            endScreen.classList.remove('hidden');
-            endScreen.classList.add('flex');
-            
-            document.getElementById('final-score').innerText = `${score} คะแนน`;
-            
-            let endMsg = "";
-            if(score >= 60) endMsg = "สุดยอด! ปรมาจารย์ด้านเทอร์โมไดนามิกส์ตัวจริง! ⚡";
-            else if(score >= 30) endMsg = "เก่งมาก! เข้าใจเรื่องหน่วยและทำเวลาได้ดี! 👍";
-            else if(score >= 10) endMsg = "ทำได้ดี! แต่ต้องระวังเรื่องการแปลงหน่วยและฝึกให้ไวขึ้นนะ 💪";
-            else endMsg = "หมดเวลา! ลองกลับไปทบทวนเรื่องหน่วยและมาท้าทายเวลาใหม่นะ! 🔥";
-            
-            document.getElementById('end-message').innerText = endMsg;
-        }
-
-        // Initialize Game
-        window.onload = () => {
-            questions = generateQuestions();
-            renderQuestion();
-            startTimer();
-
-            // ดักการสัมผัสจอครั้งแรกเพื่อให้เสียง (AudioContext) เริ่มทำงานได้ทันที
-            const unlockAudio = () => {
-                initAudio();
-                document.removeEventListener('pointerdown', unlockAudio);
+    /* =========================================================
+       2. GENERATING 40 MENTAL MATH PROBLEMS (mcΔT = mcΔT)
+       ========================================================= */
+    // Helper: generate nice clean thermal equilibrium problems
+    function generateThermalQuestionPool(count = 40) {
+      const questions = [];
+      
+      // We will generate combinations where water (c=1) or liquids with same c are mixed:
+      // m1(T1 - T) = m2(T - T2) => T = (m1*T1 + m2*T2)/(m1 + m2)
+      // All designed to produce integer answers or clean simple deductions.
+      
+      const templates = [
+        // Case 1: Equal masses m1 = m2 => T = (T1 + T2)/2
+        {
+          gen: () => {
+            const m = [50, 100, 150, 200, 300][Math.floor(Math.random() * 5)];
+            const step = (Math.floor(Math.random() * 6) + 2) * 10; // 20 to 70
+            const T2 = (Math.floor(Math.random() * 3) + 1) * 10; // 10, 20, 30
+            const T1 = T2 + step;
+            const ans = (T1 + T2) / 2;
+            return {
+              text: `ผสมน้ำมวล <b class="text-cyan-300">${m} g</b> อุณหภูมิ <b class="text-rose-400">${T1} °C</b> กับน้ำมวล <b class="text-cyan-300">${m} g</b> อุณหภูมิ <b class="text-blue-300">${T2} °C</b> ในภาชนะฉนวนความร้อน จงหาอุณหภูมิผสมสุดท้าย?`,
+              ans: ans,
+              unit: "°C",
+              explanation: `มวลเท่ากัน (${m} g): T_ผสม = (${T1} + ${T2}) / 2 = ${ans} °C`
             };
-            document.addEventListener('pointerdown', unlockAudio);
-        };
-    </script>
+          }
+        },
+        // Case 2: Ratio 2:1 mass => m1=200, m2=100
+        {
+          gen: () => {
+            const ratios = [
+              { m1: 200, m2: 100, T1: 70, T2: 10, ans: 50 }, // (2*70 + 1*10)/3 = 150/3 = 50
+              { m1: 200, m2: 100, T1: 80, T2: 20, ans: 60 }, // (160 + 20)/3 = 60
+              { m1: 100, m2: 200, T1: 90, T2: 30, ans: 50 }, // (90 + 60)/3 = 50
+              { m1: 200, m2: 100, T1: 60, T2: 30, ans: 50 }, // (120+30)/3 = 50
+              { m1: 300, m2: 100, T1: 60, T2: 20, ans: 50 }, // (180+20)/4 = 50
+              { m1: 100, m2: 300, T1: 100, T2: 20, ans: 40 }, // (100+60)/4 = 40
+              { m1: 300, m2: 100, T1: 80, T2: 40, ans: 70 }, // (240+40)/4 = 70
+              { m1: 200, m2: 300, T1: 80, T2: 30, ans: 50 }, // (160+90)/5 = 50
+              { m1: 150, m2: 150, T1: 90, T2: 10, ans: 50 },
+              { m1: 200, m2: 200, T1: 75, T2: 25, ans: 50 }
+            ];
+            const item = ratios[Math.floor(Math.random() * ratios.length)];
+            return {
+              text: `นำน้ำร้อน <b class="text-rose-400">${item.m1} g</b> ที่ <b class="text-rose-400">${item.T1} °C</b> ผสมกับน้ำเย็น <b class="text-blue-300">${item.m2} g</b> ที่ <b class="text-blue-300">${item.T2} °C</b> เมื่อเกิดสมดุลความร้อน อุณหภูมิผสมจะเป็นกี่ °C?`,
+              ans: item.ans,
+              unit: "°C",
+              explanation: `Q_ลด = Q_เพิ่ม : ${item.m1}(${item.T1} - T) = ${item.m2}(T - ${item.T2}) ➔ T = ${item.ans} °C`
+            };
+          }
+        },
+        // Case 3: Finding Unknown Mass (m1)
+        {
+          gen: () => {
+            const list = [
+              { m1Ans: 100, T1: 80, m2: 200, T2: 20, T_mix: 40 }, // m1*(40) = 200*(20) -> m1=100
+              { m1Ans: 200, T1: 90, m2: 100, T2: 30, T_mix: 70 }, // m1*(20) = 100*(40) -> m1=200
+              { m1Ans: 150, T1: 70, m2: 150, T2: 30, T_mix: 50 }, // m1=150
+              { m1Ans: 300, T1: 80, m2: 100, T2: 40, T_mix: 70 }, // m1*(10) = 100*(30) -> m1=300
+              { m1Ans: 50,  T1: 90, m2: 150, T2: 10, T_mix: 30 }, // m1*(60) = 150*(20) -> m1=50
+            ];
+            const p = list[Math.floor(Math.random() * list.length)];
+            return {
+              text: `เทน้ำร้อนอุณหภูมิ <b class="text-rose-400">${p.T1} °C</b> (มวล m) ลงในน้ำเย็นมวล <b class="text-blue-300">${p.m2} g</b> ที่ <b class="text-blue-300">${p.T2} °C</b> จนได้อุณหภูมิสุดท้ายที่ <b class="text-emerald-400">${p.T_mix} °C</b> จงหามวล m ของน้ำร้อน?`,
+              ans: p.m1Ans,
+              unit: "g",
+              explanation: `m(${p.T1} - ${p.T_mix}) = ${p.m2}(${p.T_mix} - ${p.T2}) ➔ m = ${p.m1Ans} g`
+            };
+          }
+        },
+        // Case 4: Finding Initial Temperature (T1)
+        {
+          gen: () => {
+            const list = [
+              { m1: 100, T1Ans: 80, m2: 100, T2: 20, T_mix: 50 },
+              { m1: 200, T1Ans: 90, m2: 100, T2: 30, T_mix: 70 },
+              { m1: 100, T1Ans: 70, m2: 200, T2: 40, T_mix: 50 },
+              { m1: 150, T1Ans: 100, m2: 150, T2: 20, T_mix: 60 },
+              { m1: 100, T1Ans: 60, m2: 100, T2: 20, T_mix: 40 }
+            ];
+            const p = list[Math.floor(Math.random() * list.length)];
+            return {
+              text: `น้ำมวล <b class="text-cyan-300">${p.m1} g</b> ที่อุณหภูมิเริ่มต้น <b class="text-amber-300">T₁</b> ผสมกับน้ำมวล <b class="text-cyan-300">${p.m2} g</b> ที่ <b class="text-blue-300">${p.T2} °C</b> ได้อุณหภูมิผสมเป็น <b class="text-emerald-400">${p.T_mix} °C</b> อุณหภูมิ T₁ มีค่าเท่าใด?`,
+              ans: p.T1Ans,
+              unit: "°C",
+              explanation: `${p.m1}(T₁ - ${p.T_mix}) = ${p.m2}(${p.T_mix} - ${p.T2}) ➔ T₁ = ${p.T1Ans} °C`
+            };
+          }
+        },
+        // Case 5: Different specific heat capacity c (Clean integers)
+        {
+          gen: () => {
+            const items = [
+              { m1: 100, c1: 0.5, T1: 90, m2: 100, c2: 1, T2: 30, ans: 50 }, // 100*0.5*(90-T) = 50(90-T); 100*1*(T-30) -> 50*90 + 100*30 = 7500 / 150 = 50
+              { m1: 200, c1: 0.2, T1: 100, m2: 60, c2: 1, T2: 20, ans: 52 }, // 40*(100-T) = 60*(T-20) -> 4000+1200 = 5200 / 100 = 52
+              { m1: 100, c1: 0.2, T1: 80, m2: 40, c2: 1, T2: 20, ans: 40 },  // 20*(80-T) = 40*(T-20) -> 1600+800=2400/60 = 40
+              { m1: 200, c1: 0.5, T1: 80, m2: 100, c2: 1, T2: 20, ans: 50 }, // 100*(80-T) = 100*(T-20) -> T=50
+              { m1: 50,  c1: 0.4, T1: 90, m2: 80, c2: 1, T2: 40, ans: 50 },  // 20*(90-T) = 80*(T-40) -> 1800+3200=5000/100 = 50
+            ];
+            const p = items[Math.floor(Math.random() * items.length)];
+            return {
+              text: `โลหะมวล <b class="text-amber-300">${p.m1} g</b> (c = <b class="text-yellow-300">${p.c1} cal/g·°C</b>) อุณหภูมิ <b class="text-rose-400">${p.T1} °C</b> หย่อนลงในน้ำ <b class="text-cyan-300">${p.m2} g</b> ที่ <b class="text-blue-300">${p.T2} °C</b> (c_น้ำ = 1 cal/g·°C) อุณหภูมิผสมเป็นเท่าใด?`,
+              ans: p.ans,
+              unit: "°C",
+              explanation: `(${p.m1})(${p.c1})(${p.T1} - T) = (${p.m2})(1)(T - ${p.T2}) ➔ T = ${p.ans} °C`
+            };
+          }
+        }
+      ];
+
+      for (let i = 0; i < count; i++) {
+        const tmpl = templates[i % templates.length];
+        const qData = tmpl.gen();
+        
+        // Generate 3 plausible distractor choices
+        const correctVal = qData.ans;
+        const distractors = new Set();
+        
+        const offsetSteps = [5, 10, -5, -10, 15, -15, 20, -20];
+        // Shuffle offsets
+        offsetSteps.sort(() => Math.random() - 0.5);
+
+        for (let off of offsetSteps) {
+          const fake = correctVal + off;
+          if (fake > 0 && fake !== correctVal) {
+            distractors.add(fake);
+          }
+          if (distractors.size === 3) break;
+        }
+
+        // In case not enough, fill fallback
+        while (distractors.size < 3) {
+          const fake = correctVal + (distractors.size + 1) * 6;
+          distractors.add(fake);
+        }
+
+        const choices = Array.from(distractors);
+        choices.push(correctVal);
+        choices.sort(() => Math.random() - 0.5); // Shuffle choices
+
+        questions.push({
+          id: i + 1,
+          question: qData.text,
+          ans: correctVal,
+          unit: qData.unit,
+          choices: choices,
+          explanation: qData.explanation
+        });
+      }
+
+      // Shuffle entire 40 questions order
+      return questions.sort(() => Math.random() - 0.5);
+    }
+
+    /* =========================================================
+       3. GAME STATE MANAGEMENT
+       ========================================================= */
+    const TOTAL_QUESTIONS = 40;
+    const TOTAL_SECONDS = 120; // 2 minutes
+
+    let gameState = {
+      questions: [],
+      currentIndex: 0,
+      score: 0,
+      correctCount: 0,
+      wrongCount: 0,
+      consecutiveCorrect: 0, // Triggers wheel every 2
+      wheelSpins: 0,
+      timeLeft: TOTAL_SECONDS,
+      timerId: null,
+      isAnsweringLocked: false,
+      isGameActive: false
+    };
+
+    // DOM Elements
+    const startScreen = document.getElementById('startScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const startGameBtn = document.getElementById('startGameBtn');
+    const restartGameBtn = document.getElementById('restartGameBtn');
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timeProgressBar = document.getElementById('timeProgressBar');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const currentQNum = document.getElementById('currentQNum');
+    const streakDot1 = document.getElementById('streakDot1');
+    const streakDot2 = document.getElementById('streakDot2');
+
+    const questionText = document.getElementById('questionText');
+    const choicesContainer = document.getElementById('choicesContainer');
+    const answerFeedback = document.getElementById('answerFeedback');
+    const feedbackText = document.getElementById('feedbackText');
+    const feedbackExplanation = document.getElementById('feedbackExplanation');
+
+    // Start Game Handler
+    startGameBtn.addEventListener('click', startGame);
+    restartGameBtn.addEventListener('click', startGame);
+
+    function startGame() {
+      // Audio activation on user gesture
+      sound.init();
+
+      // Reset state
+      gameState.questions = generateThermalQuestionPool(TOTAL_QUESTIONS);
+      gameState.currentIndex = 0;
+      gameState.score = 0;
+      gameState.correctCount = 0;
+      gameState.wrongCount = 0;
+      gameState.consecutiveCorrect = 0;
+      gameState.wheelSpins = 0;
+      gameState.timeLeft = TOTAL_SECONDS;
+      gameState.isAnsweringLocked = false;
+      gameState.isGameActive = true;
+
+      // Update UI
+      startScreen.classList.add('hidden');
+      gameOverScreen.classList.add('hidden');
+      gameScreen.classList.remove('hidden');
+      gameScreen.classList.add('flex');
+
+      updateHUD();
+      loadQuestion(gameState.currentIndex);
+      startTimer();
+    }
+
+    function startTimer() {
+      clearInterval(gameState.timerId);
+      updateTimerUI();
+
+      gameState.timerId = setInterval(() => {
+        if (!gameState.isGameActive) return;
+        gameState.timeLeft--;
+        updateTimerUI();
+
+        if (gameState.timeLeft <= 0) {
+          endGame("หมดเวลา 2 นาที (120 วินาที)");
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI() {
+      const mins = Math.floor(gameState.timeLeft / 60);
+      const secs = gameState.timeLeft % 60;
+      timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      
+      const pct = (gameState.timeLeft / TOTAL_SECONDS) * 100;
+      timeProgressBar.style.width = `${pct}%`;
+
+      if (gameState.timeLeft <= 20) {
+        timerDisplay.classList.add('text-rose-500', 'animate-pulse');
+        timeProgressBar.classList.add('from-rose-500', 'to-red-600');
+      } else {
+        timerDisplay.classList.remove('text-rose-500', 'animate-pulse');
+      }
+    }
+
+    function updateHUD() {
+      scoreDisplay.textContent = gameState.score;
+      currentQNum.textContent = Math.min(gameState.currentIndex + 1, TOTAL_QUESTIONS);
+
+      // Consecutive correct lights (every 2 correct triggers wheel)
+      const c = gameState.consecutiveCorrect;
+      if (c === 0) {
+        streakDot1.className = "w-4 h-4 rounded-full border border-slate-600 bg-slate-800 transition-colors";
+        streakDot2.className = "w-4 h-4 rounded-full border border-slate-600 bg-slate-800 transition-colors";
+      } else if (c === 1) {
+        streakDot1.className = "w-4 h-4 rounded-full border border-amber-400 bg-amber-400 shadow-sm shadow-amber-400 transition-colors";
+        streakDot2.className = "w-4 h-4 rounded-full border border-slate-600 bg-slate-800 transition-colors";
+      } else {
+        streakDot1.className = "w-4 h-4 rounded-full border border-amber-400 bg-amber-400 shadow-sm shadow-amber-400 transition-colors";
+        streakDot2.className = "w-4 h-4 rounded-full border border-amber-400 bg-amber-400 shadow-sm shadow-amber-400 transition-colors";
+      }
+    }
+
+    /* =========================================================
+       4. QUESTION DISPLAY & EVALUATION
+       ========================================================= */
+    const choiceLabels = ['ก.', 'ข.', 'ค.', 'ง.'];
+
+    function loadQuestion(index) {
+      if (index >= TOTAL_QUESTIONS) {
+        endGame("ตอบครบหมดทั้ง 40 ข้อ ยอดเยี่ยมมาก!");
+        return;
+      }
+
+      gameState.isAnsweringLocked = false;
+      answerFeedback.classList.add('hidden');
+      const q = gameState.questions[index];
+
+      questionText.innerHTML = `<span class="text-cyan-400 font-mono mr-2">Q${index + 1}:</span> ${q.question}`;
+      choicesContainer.innerHTML = '';
+
+      q.choices.forEach((choice, i) => {
+        const btn = document.createElement('button');
+        btn.className = "flex items-center justify-between p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 hover:border-cyan-500 text-left transition-all duration-150 group font-medium text-slate-200 active:scale-[0.98]";
+        btn.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-xs font-bold font-mono text-cyan-400 group-hover:border-cyan-400">
+              ${choiceLabels[i]}
+            </span>
+            <span class="text-lg font-mono">${choice} ${q.unit}</span>
+          </div>
+          <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-cyan-400 transition-colors text-xs"></i>
+        `;
+        btn.addEventListener('click', () => handleChoiceSelect(choice, q.ans, btn, q.explanation));
+        choicesContainer.appendChild(btn);
+      });
+
+      updateHUD();
+    }
+
+    function handleChoiceSelect(selected, correct, chosenBtn, explanation) {
+      if (gameState.isAnsweringLocked || !gameState.isGameActive) return;
+      gameState.isAnsweringLocked = true;
+
+      const isCorrect = (selected === correct);
+
+      // Style choices
+      const allButtons = choicesContainer.querySelectorAll('button');
+      allButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.remove('hover:bg-slate-700/80', 'hover:border-cyan-500');
+      });
+
+      if (isCorrect) {
+        sound.playCorrect();
+        chosenBtn.classList.remove('bg-slate-800/80', 'border-slate-700');
+        chosenBtn.classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-200', 'shadow-lg', 'shadow-emerald-950');
+
+        // Score logic: +5 for correct
+        gameState.score += 5;
+        gameState.correctCount++;
+        gameState.consecutiveCorrect++;
+
+        // Feedback banner
+        answerFeedback.className = "mt-5 p-3 rounded-xl text-sm font-medium flex flex-col sm:flex-row items-center justify-between bg-emerald-950/80 border border-emerald-600/60 text-emerald-300";
+        feedbackText.innerHTML = `<span><i class="fa-solid fa-circle-check text-emerald-400 mr-2"></i><b>ถูกต้อง! +5 คะแนน</b></span>`;
+        feedbackExplanation.textContent = explanation;
+        answerFeedback.classList.remove('hidden');
+
+      } else {
+        sound.playWrong();
+        chosenBtn.classList.remove('bg-slate-800/80', 'border-slate-700');
+        chosenBtn.classList.add('bg-rose-950/80', 'border-rose-500', 'text-rose-200', 'shadow-lg', 'shadow-rose-950');
+
+        // Highlight correct button
+        allButtons.forEach(btn => {
+          if (btn.innerText.includes(`${correct}`)) {
+            btn.classList.add('border-emerald-500', 'bg-emerald-950/40');
+          }
+        });
+
+        // Score logic: -10 for wrong
+        gameState.score -= 10;
+        gameState.wrongCount++;
+        gameState.consecutiveCorrect = 0; // Reset streak
+
+        // Feedback banner
+        answerFeedback.className = "mt-5 p-3 rounded-xl text-sm font-medium flex flex-col sm:flex-row items-center justify-between bg-rose-950/80 border border-rose-600/60 text-rose-300";
+        feedbackText.innerHTML = `<span><i class="fa-solid fa-circle-xmark text-rose-400 mr-2"></i><b>ตอบผิด! -10 คะแนน</b></span>`;
+        feedbackExplanation.textContent = explanation;
+        answerFeedback.classList.remove('hidden');
+      }
+
+      updateHUD();
+
+      // Check for Wheel Trigger: Every 2 correct answers
+      const triggerWheel = isCorrect && (gameState.consecutiveCorrect >= 2);
+
+      setTimeout(() => {
+        if (!gameState.isGameActive) return;
+
+        if (triggerWheel) {
+          gameState.consecutiveCorrect = 0; // Reset streak
+          updateHUD();
+          openWheelModal();
+        } else {
+          gameState.currentIndex++;
+          loadQuestion(gameState.currentIndex);
+        }
+      }, 1300);
+    }
+
+    /* =========================================================
+       5. WHEEL SYSTEM WITH REQUIRED EXACT PROBABILITIES
+       Rule:
+       - 20% Chance: Score Bonus (Green/Gold)
+       - 60% Chance: Score Penalty / Negative (Red/Orange)
+       - 20% Chance: Neutral / Small (Blue/Slate)
+       - Option: Skip wheel by losing 5 points
+       ========================================================= */
+    const wheelModal = document.getElementById('wheelModal');
+    const wheelCanvas = document.getElementById('wheelCanvas');
+    const spinWheelBtn = document.getElementById('spinWheelBtn');
+    const skipWheelBtn = document.getElementById('skipWheelBtn');
+    const continueAfterWheelBtn = document.getElementById('continueAfterWheelBtn');
+    const wheelResultBanner = document.getElementById('wheelResultBanner');
+    const wheelButtonsGroup = document.getElementById('wheelButtonsGroup');
+    const ctxWheel = wheelCanvas.getContext('2d');
+
+    // 10 Segments (each 36 degrees for equal visual slices):
+    // Distribution:
+    // 2 segments Bonus (+20, +15) = 2/10 = 20%
+    // 6 segments Penalty (-15, -20, -25, -30, -10, -15) = 6/10 = 60%
+    // 2 segments Neutral (+0, +2) = 2/10 = 20%
+    const WHEEL_SEGMENTS = [
+      { label: "+20 แต้ม", value: 20, type: "bonus", bg: "#10b981", text: "#022c22" },    // 1. Bonus
+      { label: "-20 แต้ม", value: -20, type: "penalty", bg: "#e11d48", text: "#ffffff" }, // 2. Penalty
+      { label: "เสมอตัว (+0)", value: 0, type: "neutral", bg: "#0284c7", text: "#ffffff" },// 3. Neutral
+      { label: "-15 แต้ม", value: -15, type: "penalty", bg: "#f43f5e", text: "#ffffff" }, // 4. Penalty
+      { label: "+15 แต้ม", value: 15, type: "bonus", bg: "#f59e0b", text: "#451a03" },    // 5. Bonus
+      { label: "-25 แต้ม", value: -25, type: "penalty", bg: "#be123c", text: "#ffffff" }, // 6. Penalty
+      { label: "+2 แต้ม",  value: 2,  type: "neutral", bg: "#38bdf8", text: "#082f49" },  // 7. Neutral
+      { label: "-30 แต้ม", value: -30, type: "penalty", bg: "#9f1239", text: "#ffffff" }, // 8. Penalty
+      { label: "-10 แต้ม", value: -10, type: "penalty", bg: "#fb7185", text: "#4c0519" }, // 9. Penalty
+      { label: "-15 แต้ม", value: -15, type: "penalty", bg: "#e11d48", text: "#ffffff" }  // 10. Penalty
+    ];
+    // Breakdown validation:
+    // Bonus: index 0, 4 => 2/10 = 20%
+    // Penalty: index 1, 3, 5, 7, 8, 9 => 6/10 = 60%
+    // Neutral: index 2, 6 => 2/10 = 20%
+    // Perfect match with requirements!
+
+    let wheelCurrentRotation = 0;
+    let isSpinning = false;
+
+    function drawWheel(angleOffset = 0) {
+      const numSegments = WHEEL_SEGMENTS.length;
+      const arc = (2 * Math.PI) / numSegments;
+      const cx = wheelCanvas.width / 2;
+      const cy = wheelCanvas.height / 2;
+      const radius = cx - 8;
+
+      ctxWheel.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+
+      for (let i = 0; i < numSegments; i++) {
+        const seg = WHEEL_SEGMENTS[i];
+        const angle = angleOffset + (i * arc);
+
+        // Draw Sector
+        ctxWheel.beginPath();
+        ctxWheel.fillStyle = seg.bg;
+        ctxWheel.moveTo(cx, cy);
+        ctxWheel.arc(cx, cy, radius, angle, angle + arc);
+        ctxWheel.closePath();
+        ctxWheel.fill();
+
+        // Sector Border
+        ctxWheel.lineWidth = 2;
+        ctxWheel.strokeStyle = "#0f172a";
+        ctxWheel.stroke();
+
+        // Draw Text inside sector
+        ctxWheel.save();
+        ctxWheel.translate(cx, cy);
+        ctxWheel.rotate(angle + arc / 2);
+        ctxWheel.textAlign = "right";
+        ctxWheel.fillStyle = seg.text;
+        ctxWheel.font = "bold 13px 'Kanit', sans-serif";
+        ctxWheel.fillText(seg.label, radius - 15, 5);
+        ctxWheel.restore();
+      }
+
+      // Outer ring
+      ctxWheel.beginPath();
+      ctxWheel.arc(cx, cy, radius, 0, 2 * Math.PI);
+      ctxWheel.lineWidth = 6;
+      ctxWheel.strokeStyle = "#f59e0b";
+      ctxWheel.stroke();
+    }
+
+    drawWheel(wheelCurrentRotation);
+
+    function openWheelModal() {
+      wheelModal.classList.remove('hidden');
+      setTimeout(() => {
+        wheelModal.classList.remove('opacity-0');
+        document.getElementById('wheelModalBox').classList.remove('scale-95');
+        document.getElementById('wheelModalBox').classList.add('scale-100');
+      }, 10);
+
+      // Reset controls
+      spinWheelBtn.disabled = false;
+      skipWheelBtn.disabled = false;
+      wheelButtonsGroup.classList.remove('hidden');
+      continueAfterWheelBtn.classList.add('hidden');
+      wheelResultBanner.classList.add('hidden');
+      drawWheel(wheelCurrentRotation);
+    }
+
+    function closeWheelModal() {
+      wheelModal.classList.add('opacity-0');
+      document.getElementById('wheelModalBox').classList.remove('scale-100');
+      document.getElementById('wheelModalBox').classList.add('scale-95');
+
+      setTimeout(() => {
+        wheelModal.classList.add('hidden');
+        // Proceed to next question
+        gameState.currentIndex++;
+        loadQuestion(gameState.currentIndex);
+      }, 300);
+    }
+
+    // Spin Wheel Action
+    spinWheelBtn.addEventListener('click', () => {
+      if (isSpinning) return;
+      isSpinning = true;
+      spinWheelBtn.disabled = true;
+      skipWheelBtn.disabled = true;
+      gameState.wheelSpins++;
+
+      // Pick random outcome index (0-9 gives perfectly 20% bonus, 60% penalty, 20% neutral)
+      const targetIndex = Math.floor(Math.random() * WHEEL_SEGMENTS.length);
+      const segArc = (2 * Math.PI) / WHEEL_SEGMENTS.length;
+
+      // Pointer is at the top (angle = 3 * Math.PI / 2 or -Math.PI / 2).
+      // We want segment `targetIndex` to align with the top arrow at the end.
+      const targetAngleCenter = (targetIndex * segArc) + (segArc / 2);
+      const topPointerAngle = 1.5 * Math.PI;
+      
+      // Calculate final target rotation (with at least 5-7 full spins)
+      const fullRotations = (5 + Math.floor(Math.random() * 3)) * (2 * Math.PI);
+      const desiredFinalOffset = topPointerAngle - targetAngleCenter;
+      
+      // Normalize current rotation
+      const normalizedCurrent = wheelCurrentRotation % (2 * Math.PI);
+      const targetRotation = wheelCurrentRotation + (2 * Math.PI - normalizedCurrent) + fullRotations + desiredFinalOffset;
+
+      const startAngle = wheelCurrentRotation;
+      const totalDelta = targetRotation - startAngle;
+      const duration = 4000; // 4 seconds animation
+      let startTime = null;
+      let lastTickSegment = -1;
+
+      function animateWheel(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Ease Out Cubic
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const currentAngle = startAngle + (totalDelta * ease);
+
+        drawWheel(currentAngle);
+
+        // Sound Tick when passing segments
+        const currentSegIndex = Math.floor(((topPointerAngle - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) / segArc);
+        if (currentSegIndex !== lastTickSegment) {
+          sound.playTick();
+          lastTickSegment = currentSegIndex;
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(animateWheel);
+        } else {
+          wheelCurrentRotation = targetRotation;
+          isSpinning = false;
+          handleWheelLanded(WHEEL_SEGMENTS[targetIndex]);
+        }
+      }
+
+      requestAnimationFrame(animateWheel);
+    });
+
+    function handleWheelLanded(segment) {
+      // Apply points
+      gameState.score += segment.value;
+      updateHUD();
+
+      // Visual feedback
+      wheelButtonsGroup.classList.add('hidden');
+      continueAfterWheelBtn.classList.remove('hidden');
+      wheelResultBanner.classList.remove('hidden');
+
+      if (segment.type === 'bonus') {
+        sound.playFanfare();
+        wheelResultBanner.className = "my-3 p-3 rounded-xl text-center font-bold text-base bg-emerald-950/80 border border-emerald-500 text-emerald-300";
+        wheelResultBanner.innerHTML = `<i class="fa-solid fa-gift text-emerald-400 mr-2"></i>ดวงดีสุดๆ! ได้รับคะแนนโบนัส <span class="text-xl text-emerald-200">+${segment.value} คะแนน</span>`;
+      } else if (segment.type === 'penalty') {
+        sound.playPenalty();
+        wheelResultBanner.className = "my-3 p-3 rounded-xl text-center font-bold text-base bg-rose-950/80 border border-rose-500 text-rose-300";
+        wheelResultBanner.innerHTML = `<i class="fa-solid fa-skull-crossbones text-rose-400 mr-2"></i>ตกช่องอันตราย (60%)! ถูกหักคะแนน <span class="text-xl text-rose-200">${segment.value} คะแนน</span>`;
+      } else {
+        sound.playTick();
+        wheelResultBanner.className = "my-3 p-3 rounded-xl text-center font-bold text-base bg-sky-950/80 border border-sky-500 text-sky-300";
+        wheelResultBanner.innerHTML = `<i class="fa-solid fa-scale-balanced text-sky-400 mr-2"></i>ผลลัพธ์แบบกลางๆ: <span class="text-xl text-sky-200">${segment.label}</span>`;
+      }
+    }
+
+    // Skip Wheel Option (Deducts 5 points)
+    skipWheelBtn.addEventListener('click', () => {
+      if (isSpinning) return;
+      sound.playWrong();
+
+      // Rule: Deduct 5 points when skipping
+      gameState.score -= 5;
+      updateHUD();
+
+      wheelButtonsGroup.classList.add('hidden');
+      continueAfterWheelBtn.classList.remove('hidden');
+      wheelResultBanner.classList.remove('hidden');
+
+      wheelResultBanner.className = "my-3 p-3 rounded-xl text-center font-bold text-sm bg-slate-800 border border-amber-500/50 text-amber-300";
+      wheelResultBanner.innerHTML = `<i class="fa-solid fa-shield text-amber-400 mr-2"></i>คุณเลือกหลีกเลี่ยงความเสี่ยง: เสีย 5 คะแนนตามกติกา`;
+
+      setTimeout(() => {
+        closeWheelModal();
+      }, 1000);
+    });
+
+    continueAfterWheelBtn.addEventListener('click', () => {
+      closeWheelModal();
+    });
+
+    /* =========================================================
+       6. GAME OVER & SUMMARY
+       ========================================================= */
+    const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+    const finalCorrectCount = document.getElementById('finalCorrectCount');
+    const finalWrongCount = document.getElementById('finalWrongCount');
+    const finalSpinCount = document.getElementById('finalSpinCount');
+    const gameOverReason = document.getElementById('gameOverReason');
+
+    function endGame(reason) {
+      gameState.isGameActive = false;
+      clearInterval(gameState.timerId);
+
+      // Hide wheel modal if open
+      wheelModal.classList.add('hidden');
+
+      // Update screen
+      gameScreen.classList.add('hidden');
+      gameScreen.classList.remove('flex');
+      gameOverScreen.classList.remove('hidden');
+
+      gameOverReason.textContent = reason;
+      finalScoreDisplay.textContent = gameState.score;
+      finalCorrectCount.textContent = gameState.correctCount;
+      finalWrongCount.textContent = gameState.wrongCount;
+      finalSpinCount.textContent = gameState.wheelSpins;
+
+      if (gameState.score >= 50) {
+        sound.playFanfare();
+        finalScoreDisplay.className = "font-mono text-5xl font-black text-emerald-400 mb-4";
+      } else if (gameState.score < 0) {
+        sound.playPenalty();
+        finalScoreDisplay.className = "font-mono text-5xl font-black text-rose-400 mb-4";
+      } else {
+        sound.playTick();
+        finalScoreDisplay.className = "font-mono text-5xl font-black text-cyan-400 mb-4";
+      }
+    }
+  </script>
 </body>
 </html>
